@@ -12,7 +12,7 @@ import com.android.uiautomator.core.UiScrollable;
 import com.android.uiautomator.core.UiSelector;
 import com.enalix.testUtils.*;
 
-public class TestDemo extends TestUtils {
+public class TestDemo extends MidUtils {
 	public void testDemo() throws RemoteException, UiObjectNotFoundException {
 		//turnWifiOn();
 		//callTelnum("14592839");

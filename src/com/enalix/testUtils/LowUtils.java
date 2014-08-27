@@ -1,7 +1,6 @@
 package com.enalix.testUtils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import android.graphics.Rect;
 import android.os.RemoteException;
@@ -9,7 +8,7 @@ import android.os.RemoteException;
 import com.android.uiautomator.core.*;
 import com.android.uiautomator.testrunner.*;
 
-public class BasicUtils extends UiAutomatorTestCase {
+public class LowUtils extends UiAutomatorTestCase {
 	/**
 	 * unlock phone
 	 * @throws UiObjectNotFoundException

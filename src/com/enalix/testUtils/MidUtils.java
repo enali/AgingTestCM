@@ -6,7 +6,7 @@ import android.os.RemoteException;
 
 import com.android.uiautomator.core.*;
 
-public class TestUtils extends BasicUtils {
+public class MidUtils extends LowUtils {
 	/**
 	 * get wifi state, open/close wifi
 	 * @return "ON" or "OFF"
