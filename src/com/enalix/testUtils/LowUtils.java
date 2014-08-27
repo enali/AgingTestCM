@@ -26,8 +26,8 @@ public class LowUtils extends UiAutomatorTestCase {
 	 * enter the apps list
 	 * @throws UiObjectNotFoundException
 	 */
+	/* work in home screen */
 	public void openAppList() throws UiObjectNotFoundException {
-		getUiDevice().pressHome();
 		UiObject uiObj = getObjByTxt("Apps");
 		if (uiObj.exists()) 
 			uiObj.clickAndWaitForNewWindow();
@@ -38,9 +38,8 @@ public class LowUtils extends UiAutomatorTestCase {
 	 * @throws UiObjectNotFoundException
 	 * @throws RemoteException
 	 */
-	public void openApp(String appName) throws UiObjectNotFoundException, RemoteException {
-		unlock();
-		openAppList();		
+	/* work in apps list screen 0 */
+	public void openApp(String appName) throws UiObjectNotFoundException, RemoteException {	
 		while (!getObjByTxt(appName).exists())
 			swipe("left");
 		getObjByTxt(appName).clickAndWaitForNewWindow();
@@ -74,9 +73,8 @@ public class LowUtils extends UiAutomatorTestCase {
 	 * @throws UiObjectNotFoundException
 	 * @throws RemoteException
 	 */
-	public void printAppList() throws UiObjectNotFoundException, RemoteException {
-		unlock();
-		openAppList();
+	/* work in apps list screen 0 , will back to 0*/
+	public ArrayList<App> getAppList() throws UiObjectNotFoundException, RemoteException {
 		ArrayList<App> appList = new ArrayList<App>(100);
 		int page = getObjById("com.android.launcher3:id/apps_customize_page_indicator").getChildCount();
 		for (int i=0; i<page; i++) {
@@ -89,9 +87,9 @@ public class LowUtils extends UiAutomatorTestCase {
 			}
 			swipe("left");
 		}
-		appList.trimToSize();
-		for (App e:appList)
-			System.out.println(e);
+		for (int i=0; i<page; i++)
+			swipe("right"); //keep the screen not change
+		return appList;
 	}
 	/**
 	 * get the switch widget that at right of switchname's textview.
@@ -153,10 +151,10 @@ public class LowUtils extends UiAutomatorTestCase {
 		return new UiObject(new UiSelector().className("android.widget.MultiAutoCompleteTextView"));
 	}
 	public UiObject getMultiEditByTxt(String text) {
-		return new UiObject(new UiSelector().className("android.widget.MultiAutoCompleteTextView").text(text));
+		return getObjByClsTxt("android.widget.MultiAutoCompleteTextView", text);
 	}
 	public UiObject getEditByTxt(String text) {
-		return new UiObject(new UiSelector().className("android.widget.EditText").text(text));
+		return getObjByClsTxt("android.widget.EditText", text);
 	}
 	/**
 	 * get/open/clear/clear all UiObject of the recent app
@@ -290,5 +288,15 @@ public class LowUtils extends UiAutomatorTestCase {
 			return false;
 		}
 	}
-
+	/**
+	 * clear all notifications
+	 * @throws UiObjectNotFoundException
+	 */
+	public void clearNotifications() throws UiObjectNotFoundException {
+		getUiDevice().openNotification();
+		UiObject uiObj = getObjByDescContains("Clear");
+		if (uiObj.exists())
+			uiObj.clickAndWaitForNewWindow();
+		swipe("up");
+	}
 }
