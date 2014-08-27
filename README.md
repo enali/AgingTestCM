@@ -8,6 +8,7 @@
 * openAppList():void
 * getAppList():ArrayList<App>
 * openApp(String):void
+
 ## UiObject
 * getObjByTxt(String):UiObject
 * getObjByTxtContains(String):UiObject
@@ -18,9 +19,11 @@
 * getObjByDesc(String):UiObject
 * getObjByDescContains(String):UiObject
 * getChildByClsTxt(String, String):UiObject
+
 ## UiScrollable
 * getScrObj():UiScrollable
 * getScrObjByCls(String):UiScrollable
+
 ## Editor
 * getEdit():UiObject
 * getEditByTxt(String):UiObject
@@ -28,11 +31,13 @@
 * getMultiEditByTxt(String):UiObject
 * clearEditTxt(UiObject):void
 * setEditTxt(UiObject, String):void
+
 ## RecentApp
 * getRecentApp(String):UiObject
 * openRecentApp(String):void
 * clearRecentApp(String):void
 * clearAllRecentApp():void
+
 ## Action
 * toScreenX(float):int
 * toScreenY(float):int
@@ -55,12 +60,15 @@
 * openWifi():void
 * closeWifi():void
 * connectWifi(String, String):void
+
 ### ApMode
 * openApMode():void
 * closeApMode():void
+
 ### Bluetooth
 * openBluetooth():void
 * closeBluetooth():void
+
 ### DataSet
 * openDataSet():void
 * closeDataSet():void
