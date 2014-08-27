@@ -1,6 +1,6 @@
 package com.enalix.testUtils;
 
-public class People {
+public class Contact {
 	private static final String[] SUB_NUMBER = {
          "134", "156", "189", "135", "139", "131" };
 
@@ -12,9 +12,9 @@ public class People {
 	private String phone;
 	private String email;
 	private String address;
-	public People() {
+	public Contact() {
 	}
-	public People(String _name, String _phone, String _email, String _address) {
+	public Contact(String _name, String _phone, String _email, String _address) {
 		this.setName(_name);
 		this.setPhone(_phone);
 		this.setEmali(_email);
@@ -44,5 +44,8 @@ public class People {
 	}
 	public String getAddress() {
 		return this.address;
+	}
+	public String toString() {
+		return this.name + "---" + this.phone + "---" + this.email + "---" + this.address;
 	}
 }

@@ -1,5 +1,8 @@
 package com.enalix.testUtils;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import android.graphics.Rect;
 import android.os.RemoteException;
 
@@ -26,10 +29,9 @@ public class BasicUtils extends UiAutomatorTestCase {
 	 */
 	public void openAppList() throws UiObjectNotFoundException {
 		getUiDevice().pressHome();
-		UiObject uiObj = new UiObject(new UiSelector().text("Apps"));
+		UiObject uiObj = getObjByTxt("Apps");
 		if (uiObj.exists()) 
 			uiObj.clickAndWaitForNewWindow();
-		//TODO:
 	}
 	/**
 	 * launch a app with it's name
@@ -39,18 +41,58 @@ public class BasicUtils extends UiAutomatorTestCase {
 	 */
 	public void openApp(String appName) throws UiObjectNotFoundException, RemoteException {
 		unlock();
-		openAppList();
-		UiScrollable uiScr = new UiScrollable(new UiSelector().scrollable(true));
-		UiObject uiObjApp = uiScr.getChildByText(new UiSelector().className("android.widget.TextView"), appName);
-		if (uiObjApp.exists())
-			uiObjApp.clickAndWaitForNewWindow();
+		openAppList();		
+		while (!getObjByTxt(appName).exists())
+			swipe("left");
+		getObjByTxt(appName).clickAndWaitForNewWindow();
 	}
 	/**
-	 * get app's list what you have installed
-	 * @return a list contains app'name
+	 * open the set component
+	 * @param setRoute, such like "Settings->display & light->sleep"
+	 * @throws RemoteException
+	 * @throws UiObjectNotFoundException
 	 */
-	public String getAppList() {
-		return "abc";
+	public void openSet(String setRoute) throws RemoteException, UiObjectNotFoundException {
+		if (!getUiDevice().getCurrentPackageName().equalsIgnoreCase("com.android.settings"))
+			openApp("Settings");
+		String[] route = setRoute.split("->");
+		String nowTitle = getObjById("android:id/action_bar_title").getText();
+		int i;
+		for (i=0; i<route.length; i++)
+			if (route[i].equalsIgnoreCase(nowTitle))
+				break;
+		if (i == route.length)
+			for (i=1; i<route.length; i++)
+				getScrObj().getChildByText(new UiSelector()
+					.className("android.widget.TextView"), route[i]).clickAndWaitForNewWindow();
+		else
+			for (i+=1; i<route.length; i++)
+				getScrObj().getChildByText(new UiSelector()
+					.className("android.widget.TextView"), route[i]).clickAndWaitForNewWindow();
+	}
+	/**
+	 * print your apps list. format: name--page--col--row--point
+	 * @throws UiObjectNotFoundException
+	 * @throws RemoteException
+	 */
+	public void printAppList() throws UiObjectNotFoundException, RemoteException {
+		unlock();
+		openAppList();
+		ArrayList<App> appList = new ArrayList<App>(100);
+		int page = getObjById("com.android.launcher3:id/apps_customize_page_indicator").getChildCount();
+		for (int i=0; i<page; i++) {
+			int num = getScrObj().getChildCount(new UiSelector().className("android.widget.TextView"));
+			for (int j=0; j<num; j++) {
+				UiObject uiObj = getObjByClsIdx("android.widget.TextView", j);
+				App app = new App(uiObj.getText(), i, 
+						j/4, j%4, uiObj.getBounds().centerX(), uiObj.getBounds().centerY());
+				appList.add(app);
+			}
+			swipe("left");
+		}
+		appList.trimToSize();
+		for (App e:appList)
+			System.out.println(e);
 	}
 	/**
 	 * get the switch widget that at right of switchname's textview.
@@ -59,27 +101,50 @@ public class BasicUtils extends UiAutomatorTestCase {
 	 * @throws UiObjectNotFoundException
 	 */
 	public UiObject getSwitch(String SwitchName) throws UiObjectNotFoundException {
-		return getChildByText("android.widget.LinearLayout", SwitchName)
+		return getChildByClsTxt("android.widget.LinearLayout", SwitchName)
 				.getChild(new UiSelector().className("android.widget.Switch"));
 	}
 	/**
-	 * get UiObject by text
+	 * get UiObject
 	 * @param text
 	 * @return
 	 */
-	public UiObject getObjByText(String text) {
+	public UiObject getObjByTxt(String text) {
 		return new UiObject(new UiSelector().text(text));
 	}
-	/**
-	 * get UiObject by text contains
-	 * @param text
-	 * @return
-	 */
-	public UiObject getObjByTextContains(String text) {
+	public UiObject getObjByTxtContains(String text) {
 		return new UiObject(new UiSelector().textContains(text));
 	}
+	public UiObject getObjByClsTxt(String cls, String text) {
+		return new UiObject(new UiSelector().className(cls).text(text));
+	}
+	public UiObject getObjByClsTxtContains(String cls, String text) {
+		return new UiObject(new UiSelector().className(cls).textContains(text));
+	}
+	public UiObject getObjById(String id) {
+		return new UiObject(new UiSelector().resourceId(id));
+	}
+	public UiObject getObjByClsIdx(String className, int index) {
+		return new UiObject(new UiSelector().className(className).index(index));
+	}
+	public UiObject getObjByDesc(String desc) {
+		return new UiObject(new UiSelector().description(desc));
+	}
+	public UiObject getObjByDescContains(String desc) {
+		return new UiObject(new UiSelector().descriptionContains(desc));
+	}
 	/**
-	 * get android.widget.EditText 
+	 * get scrollable
+	 * @return
+	 */
+	public UiScrollable getScrObj() {
+		return new UiScrollable(new UiSelector().scrollable(true));
+	}
+	public UiScrollable getScrObjByCls(String cls) {
+		return new UiScrollable(new UiSelector().className(cls).scrollable(true));
+	}
+	/**
+	 * get edit
 	 * @return
 	 */
 	public UiObject getEdit() {
@@ -88,14 +153,14 @@ public class BasicUtils extends UiAutomatorTestCase {
 	public UiObject getMultiEdit() {
 		return new UiObject(new UiSelector().className("android.widget.MultiAutoCompleteTextView"));
 	}
-	public UiObject getMultiEditByText(String text) {
+	public UiObject getMultiEditByTxt(String text) {
 		return new UiObject(new UiSelector().className("android.widget.MultiAutoCompleteTextView").text(text));
 	}
-	public UiObject getEditByText(String text) {
+	public UiObject getEditByTxt(String text) {
 		return new UiObject(new UiSelector().className("android.widget.EditText").text(text));
 	}
 	/**
-	 * get UiObject of the recent app
+	 * get/open/clear/clear all UiObject of the recent app
 	 * @param appName
 	 * @return
 	 * @throws UiObjectNotFoundException
@@ -103,34 +168,14 @@ public class BasicUtils extends UiAutomatorTestCase {
 	 */
 	public UiObject getRecentApp(String appName) throws UiObjectNotFoundException, RemoteException {
 		getUiDevice().pressRecentApps();
-		UiObject uiObj;
-		UiScrollable uiScr = new UiScrollable(new UiSelector().className("android.widget.ScrollView")
-				.scrollable(true));
-		if (uiScr.exists())
-			uiObj = uiScr.getChildByText(new UiSelector().className("android.widget.TextView"), appName);
-		else
-			uiObj = getObjByText(appName);
-		return uiObj.getFromParent(new UiSelector().className("android.widget.FrameLayout"))
-				.getChild(new UiSelector().className("android.widget.ImageView"));
-	} //TODO:it'll not work well about "People", I don't know reason
-	/**
-	 * open the recent app
-	 * @param appName
-	 * @throws RemoteException
-	 * @throws UiObjectNotFoundException
-	 */
-	public void openRecentApp(String appName) throws RemoteException, UiObjectNotFoundException {
-		UiObject uiObj = getRecentApp(appName);
-		if (uiObj.exists()) {
-			uiObj.clickAndWaitForNewWindow();
-		}	
+		while (!getUiDevice().getCurrentPackageName().equalsIgnoreCase("com.android.systemui")); //wait for window update
+		if (getScrObj().exists())
+			getScrObj().scrollIntoView(getObjByTxt(appName));
+		return getObjByTxt(appName).getFromParent(new UiSelector().className("android.widget.FrameLayout"));
 	}
-	/**
-	 * clear the recent app
-	 * @param appName
-	 * @throws RemoteException
-	 * @throws UiObjectNotFoundException
-	 */
+	public void openRecentApp(String appName) throws RemoteException, UiObjectNotFoundException {
+		getRecentApp(appName).clickAndWaitForNewWindow();
+	}
 	public void clearRecentApp(String appName) throws RemoteException, UiObjectNotFoundException	{
 		UiObject uiObj = getRecentApp(appName);
 		if (uiObj.exists()) {
@@ -142,45 +187,14 @@ public class BasicUtils extends UiAutomatorTestCase {
 				getUiDevice().swipe(rect.centerX(), rect.centerY(), rect.centerX(), 0, 40);
 			}
 		}
-			
+		pressBack();
 	}
-	/**
-	 * clear all recent app
-	 */
-	public void clearAllRecentApp() {
-		//TODO:
+	public void clearAllRecentApp() throws UiObjectNotFoundException, RemoteException {
+		getUiDevice().pressRecentApps();
+		getObjById("com.android.systemui:id/recents_clear").clickAndWaitForNewWindow();
 	}
-	/**
-	 * get UiObject by description
-	 * @param desc
-	 * @return
-	 */
-	public UiObject getObjByDesc(String desc) {
-		return new UiObject(new UiSelector().description(desc));
-	}
-	/**
-	 * get UiObject by description contains
-	 * @param desc
-	 * @return
-	 */
-	public UiObject getObjByDescContains(String desc) {
-		return new UiObject(new UiSelector().descriptionContains(desc));
-	}
-	/**
-	 * get UiScrollable
-	 * @return
-	 */
-	public UiScrollable getScrObj() {
-		return new UiScrollable(new UiSelector().scrollable(true));
-	}
-	/**
-	 * get UiScrollable with it's className
-	 * @param cls
-	 * @return UiScrollable
-	 */
-	public UiScrollable getScrObjByCls(String cls) {
-		return new UiScrollable(new UiSelector().className(cls).scrollable(true));
-	}
+
+
 	/**
 	 * get child by Text, no matter whether UiScrollable exist
 	 * @param cls
@@ -188,60 +202,42 @@ public class BasicUtils extends UiAutomatorTestCase {
 	 * @return
 	 * @throws UiObjectNotFoundException
 	 */
-	public UiObject getChildByText(String cls, String text) throws UiObjectNotFoundException {
-		UiScrollable uiScr = new UiScrollable(new UiSelector().scrollable(true));
+	public UiObject getChildByClsTxt(String cls, String text) throws UiObjectNotFoundException {
+		UiScrollable uiScr = getScrObj();
 		if (uiScr.exists())
 			return uiScr.getChildByText(new UiSelector().className(cls), text);
 		else
 			return new UiObject(new UiSelector().className(cls).text(text));
 	}
 	/**
-	 * pressBack
+	 * press
 	 */
 	public void pressBack() {
 		getUiDevice().pressBack();
 	}
-	/**
-	 * pressHome
-	 */
 	public void pressHome() {
 		getUiDevice().pressHome();
 	}
-	/**
-	 * pressMenu
-	 */
 	public void pressMenu() {
 		getUiDevice().pressMenu();
 	}
-	/**
-	 * pressDelete
-	 */
 	public void pressDelete() {
 		getUiDevice().pressDelete();
 	}
-	/**
-	 * pressEnter
-	 */
 	public void pressEnter() {
 		getUiDevice().pressEnter();
 	}
 	/**
-	 * clear the text in EditText
+	 * clear/set the text in EditText
 	 * @param uiEdit
 	 * @throws UiObjectNotFoundException
 	 */
-	public void clearEditText(UiObject uiEdit) throws UiObjectNotFoundException {
+	public void clearEditTxt(UiObject uiEdit) throws UiObjectNotFoundException {
 		String content = uiEdit.getText();
 		for (int i=0; i<content.length(); i++)
 			pressDelete();
 	}
-	/**
-	 * fill Editor with the text
-	 * @param uiEdit
-	 * @param text
-	 * @throws UiObjectNotFoundException
-	 */
-	public void setEditText(UiObject uiEdit, String text) throws UiObjectNotFoundException {
+	public void setEditTxt(UiObject uiEdit, String text) throws UiObjectNotFoundException {
 		if (!uiEdit.isFocused())
 			uiEdit.clickBottomRight();//focus it 
 		String content = uiEdit.getText();
@@ -252,73 +248,48 @@ public class BasicUtils extends UiAutomatorTestCase {
 		pressBack();
 	}
 	/**
-	 * get X with the percent of width
+	 * get X/Y with the percent of width
 	 * @param percent
 	 * @return
 	 */
 	public int toScreenX(float percent) {
 		return Math.round(percent*getUiDevice().getDisplayWidth());
 	}
-	/** 
-	 * get Y with the percent of height
-	 * @param percent
-	 * @return
-	 */
 	public int toScreenY(float percent) {
 		return Math.round(percent*getUiDevice().getDisplayHeight());
 	}
 	/**
 	 * make a long press on a UiObject
 	 * @param uiObj
+	 * @throws UiObjectNotFoundException 
 	 */
-	public void longPress(UiObject uiObj) {
+	public void longPress(UiObject uiObj) throws UiObjectNotFoundException {
+		longPress(uiObj.getBounds().centerX(), uiObj.getBounds().centerY());
+	}
+	public void longPress(int _x, int _y) {
 		//TODO:
 	}
-	/**
-	 * make a long press at (_x, _y)
-	 * @param _x
-	 * @param _y
-	 */
-	public void longPress(int _x, int _y) {
-		
-	}
-	/**
-	 * make a long press at relative (_xpercent, _ypercent)
-	 * @param _xpercent
-	 * @param _ypercent
-	 */
 	public void longPress (float _xpercent, float _ypercent) {
-		
+		longPress(toScreenX(_xpercent), toScreenY(_ypercent));
 	}
 	/**
 	 * swipe 
 	 * @param direction
 	 */
-	public void swipe(String direction) {
+	public boolean swipe(String direction) {
 		UiDevice d = getUiDevice();
 		switch(direction.toLowerCase()) {
 		case "left":
-			d.swipe(toScreenX(0.8f), toScreenY(0.5f), toScreenX(0.2f), toScreenY(0.5f), 30);
-			break;
+			return d.swipe(toScreenX(0.8f), toScreenY(0.5f), toScreenX(0.2f), toScreenY(0.5f), 30);
 		case "right":
-			d.swipe(toScreenX(0.2f), toScreenY(0.5f), toScreenX(0.8f), toScreenY(0.5f), 30);
-			break;
+			return d.swipe(toScreenX(0.2f), toScreenY(0.5f), toScreenX(0.8f), toScreenY(0.5f), 30);	
 		case "up":
-			d.swipe(toScreenX(0.5f), toScreenY(0.8f), toScreenX(0.5f), toScreenY(0.2f), 30);
-			break;
+			return d.swipe(toScreenX(0.5f), toScreenY(0.8f), toScreenX(0.5f), toScreenY(0.2f), 30);		
 		case "down":
-			d.swipe(toScreenX(0.5f), toScreenY(0.2f), toScreenX(0.5f), toScreenY(0.8f), 30);
-			break;
+			return d.swipe(toScreenX(0.5f), toScreenY(0.2f), toScreenX(0.5f), toScreenY(0.8f), 30);	
 		default:
-			break;
+			return false;
 		}
 	}
-	/**
-	 * get UiObject with recource-id
-	 * @param id
-	 * @return
-	 */
-	public UiObject getObjById(String id) {
-		return new UiObject(new UiSelector().resourceId(id));
-	}
+
 }

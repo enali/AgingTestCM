@@ -1,129 +1,49 @@
 package com.enalix.testUtils;
 
+import java.util.ArrayList;
+
 import android.os.RemoteException;
 
 import com.android.uiautomator.core.*;
-import com.android.uiautomator.testrunner.*;
 
 public class TestUtils extends BasicUtils {
 	/**
-	 * get wifi state
+	 * get wifi state, open/close wifi
 	 * @return "ON" or "OFF"
 	 * @throws UiObjectNotFoundException
 	 * @throws RemoteException
 	 */
-	public String getWifiState() throws UiObjectNotFoundException, RemoteException {
-		UiObject uiObj = new UiObject(new UiSelector().resourceId("android:id/action_bar_title"));
-		if (!uiObj.exists() || !uiObj.getText().equalsIgnoreCase("Settings"))
-			openApp("Settings");
-		UiObject uiSwitch = getSwitch("Wi‑Fi");
-		return uiSwitch.getText();
+	/* work in settings list screen */
+	public String getWifiStat() throws UiObjectNotFoundException, RemoteException {
+		return getSwitch("Wi‑Fi").getText();
 	}
-	/**
-	 * check whether wifi is on
-	 * @return true or false
-	 * @throws UiObjectNotFoundException
-	 * @throws RemoteException
-	 */
-	public boolean isWifiOn() throws UiObjectNotFoundException, RemoteException {
-		UiObject uiObj = new UiObject(new UiSelector().resourceId("android:id/action_bar_title"));
-		if (!uiObj.exists() || !uiObj.getText().equalsIgnoreCase("Settings"))
-			openApp("Settings");
-		UiObject uiSwitch = getSwitch("Wi‑Fi");
-		if (uiSwitch.exists() && uiSwitch.isChecked()) {
-			return true;
-		}
-		return false;
-	}
-	/**
-	 * check whether wifi is off
-	 * @return true or false
-	 * @throws UiObjectNotFoundException
-	 * @throws RemoteException
-	 */
-	public boolean isWifiOff() throws UiObjectNotFoundException, RemoteException {
-		UiObject uiObj = new UiObject(new UiSelector().resourceId("android:id/action_bar_title"));
-		if (!uiObj.exists() || !uiObj.getText().equalsIgnoreCase("Settings"))
-			openApp("Settings");
-		UiObject uiSwitch = getSwitch("Wi‑Fi");
-		if (uiSwitch.exists() && !uiSwitch.isChecked()) {
-			return true;
-		}
-		return false;
-	}
-	/**
-	 * turn on wifi
-	 * @throws UiObjectNotFoundException
-	 * @throws RemoteException
-	 */
 	public void openWifi() throws UiObjectNotFoundException, RemoteException {
-		UiObject uiObj = new UiObject(new UiSelector().resourceId("android:id/action_bar_title"));
-		if (!uiObj.exists() || !uiObj.getText().equalsIgnoreCase("settings"))
-			openApp("Settings");
 		UiObject uiSwitch = getSwitch("Wi‑Fi");
 		if (uiSwitch.exists() && !uiSwitch.isChecked()) {
 			uiSwitch.click();
 		}
 	}
-	/**
-	 * turn off wifi
-	 * @throws UiObjectNotFoundException
-	 * @throws RemoteException
-	 */
 	public void closeWifi() throws UiObjectNotFoundException, RemoteException {
-		UiObject uiObj = new UiObject(new UiSelector().resourceId("android:id/action_bar_title"));
-		if (!uiObj.exists() || !uiObj.getText().equalsIgnoreCase("Settings"))
-			openApp("Settings");
 		UiObject uiSwitch = getSwitch("Wi‑Fi");
 		if (uiSwitch.exists() && uiSwitch.isChecked()) {
 			uiSwitch.click();
 		}
 	}
-	/**
-	 * connect wifi
-	 * @param wifiName
-	 * @param wifiPasswd
-	 * @throws RemoteException
-	 * @throws UiObjectNotFoundException
-	 */
+	/* work in wifi list screen */
 	public void connectWifi(String wifiName, String wifiPasswd) throws RemoteException, UiObjectNotFoundException {
-		openWifi();
-		UiObject uiObj = getObjByText("Wi‑Fi");
-		if (uiObj.exists())
-			uiObj.clickAndWaitForNewWindow();
-		UiObject uiObjWifi = getObjByText(wifiName);
+		UiObject uiObjWifi = getObjByTxt(wifiName);
 		if (uiObjWifi.exists())
 			uiObjWifi.clickAndWaitForNewWindow();
-		UiObject uiFor = getObjByText("Forget");
+		UiObject uiFor = getObjByTxt("Forget");
 		if (uiFor.exists()) {
 			uiFor.clickAndWaitForNewWindow();
 			uiObjWifi.clickAndWaitForNewWindow();
 		}
 		getEdit().setText(wifiPasswd);
-		getUiDevice().pressBack();
-		UiObject uiOk = getObjByText("Connect");
+		pressBack();
+		UiObject uiOk = getObjByTxt("Connect");
 		if (uiOk.exists())
 			uiOk.clickAndWaitForNewWindow();
-	}
-	/**
-	 * get contact telphone number
-	 * @param name contact name
-	 * @throws RemoteException
-	 * @throws UiObjectNotFoundException
-	 */
-	public void getTelnum(String name) throws RemoteException, UiObjectNotFoundException {
-		openContact(name);
-		//TODO:
-	}
-	/**
-	 * make a call to contact
-	 * @param name
-	 * @throws RemoteException
-	 * @throws UiObjectNotFoundException
-	 */
-	public void callName(String name) throws RemoteException, UiObjectNotFoundException {
-		openApp("People");
-		//TODO:
 	}
 	/**
 	 * call directly a Telphone number
@@ -131,24 +51,23 @@ public class TestUtils extends BasicUtils {
 	 * @throws UiObjectNotFoundException
 	 * @throws RemoteException
 	 */
+	/* work in phone screen */
 	public void callTelnum(String number) throws UiObjectNotFoundException, RemoteException {
-		openApp("Phone");
 		UiObject uiObj = getObjByDesc("dial pad");
 		if (uiObj.exists())
 			uiObj.clickAndWaitForNewWindow();
-		clearEditText(getEdit());
+		clearEditTxt(getEdit());
 		for (int i=0; i<number.length(); i++)
-			getObjByText(String.valueOf(number.charAt(i))).click();
+			getObjByTxt(String.valueOf(number.charAt(i))).click();
 		getObjByDesc("dial").clickAndWaitForNewWindow();
 	}
-	public void callHistoryNum() {
-		
-	}
-	public void callHistoryName() {
-		
+	/* work in contact list screen */
+	public void callName(String name) throws RemoteException, UiObjectNotFoundException {
+		openContact(name);
+		getObjByClsIdx("android.widget.FrameLayout", 2).clickAndWaitForNewWindow();
 	}
 	/**
-	 * add a contact
+	 * open/add/delete a contact
 	 * @param name
 	 * @param phone
 	 * @param email
@@ -156,118 +75,76 @@ public class TestUtils extends BasicUtils {
 	 * @throws UiObjectNotFoundException
 	 * @throws RemoteException
 	 */
-	public void addContact(String name, String phone, String email, String address) throws UiObjectNotFoundException, RemoteException {
-		openApp("People");
-		getObjByDesc("Add Contact").clickAndWaitForNewWindow();
-		//UiScrollable uiScr = getScrObj();
-		//uiScr.getChildByText(new UiSelector().className("android.widget.EditText"), "Name").setText(name);
-		//uiScr.getChildByText(new UiSelector().className("android.widget.EditText"), "Phone").setText(phone);
-		//uiScr.getChildByText(new UiSelector().className("android.widget.EditText"), "Email").setText(email);
-		//uiScr.getChildByText(new UiSelector().className("android.widget.EditText"), "Address").setText(address);
-		//TODO:can't work well
-		getEditByText("Name").setText(name);
-		getUiDevice().pressBack();
-		getEditByText("Phone").setText(phone);
-		getUiDevice().pressBack();
-		getEditByText("Email").setText(email);
-		getUiDevice().pressBack();
-		getEditByText("Address").setText(address);
-		getUiDevice().pressBack();
-		getObjByText("Done").clickAndWaitForNewWindow();		
-	}
-	/**
-	 * add a contact
-	 * @param contact, an instance of People
-	 * @throws RemoteException
-	 * @throws UiObjectNotFoundException
-	 */
-	public void addContact(People contact) throws RemoteException, UiObjectNotFoundException {
-		openApp("People");
-		getObjByDesc("Add Contact").clickAndWaitForNewWindow();
-		getEditByText("Name").setText(contact.getName());
-		getUiDevice().pressBack();
-		getEditByText("Phone").setText(contact.getPhone());
-		getUiDevice().pressBack();
-		getEditByText("Email").setText(contact.getEmail());
-		getUiDevice().pressBack();
-		getEditByText("Address").setText(contact.getAddress());
-		getUiDevice().pressBack();
-		getObjByText("Done").clickAndWaitForNewWindow();
-	}
-	/**
-	 * delete a contact
-	 * @param name
-	 * @throws UiObjectNotFoundException
-	 * @throws RemoteException
-	 */
-	public void delContact(String name) throws UiObjectNotFoundException, RemoteException {
-		openContact(name);
-		getUiDevice().pressMenu();
-		getObjByText("Delete").clickAndWaitForNewWindow();
-		getObjByText("OK").clickAndWaitForNewWindow();
-	}
-	/**
-	 * open a contact
-	 * @param name
-	 * @throws UiObjectNotFoundException
-	 * @throws RemoteException
-	 */
+	/* now is the contacts list, will open contact window */
 	public void openContact(String name) throws UiObjectNotFoundException, RemoteException {
-		openApp("People");
-		getChildByText("android.widget.TextView", name).clickAndWaitForNewWindow();
+		UiObject uiCont = getScrObj().getChildByText(new UiSelector().className("android.widget.TextView"), name);
+		if (uiCont.exists())
+			uiCont.clickAndWaitForNewWindow();
 	}
-	public People getContactInfo(String name) throws RemoteException, UiObjectNotFoundException {
-		openContact(name);
-		return new People();
-		//TODO:difficult
+	/* now is contacts list, will back to it after add a contact */
+	public void addContact(Contact contact) throws RemoteException, UiObjectNotFoundException {
+		getObjByDesc("Add Contact").clickAndWaitForNewWindow();
+		getEditByTxt("Name").setText(contact.getName());
+		getUiDevice().pressBack();
+		getEditByTxt("Phone").setText(contact.getPhone());
+		getUiDevice().pressBack();
+		getEditByTxt("Email").setText(contact.getEmail());
+		getUiDevice().pressBack();
+		getEditByTxt("Address").setText(contact.getAddress());
+		getUiDevice().pressBack();
+		getObjByTxt("Done").clickAndWaitForNewWindow();	
+		pressBack();
 	}
-	public void searchContactByTelnum(String num) {
-
+	public void addContact(ArrayList<Contact> contactList) throws RemoteException, UiObjectNotFoundException {
+		for (Contact contact:contactList)
+			addContact(contact);
 	}
-	public void searchContactByName(String name) {
-		
+	/* now is the contact screen */
+	public void delContact(String name) throws UiObjectNotFoundException, RemoteException {
+		getUiDevice().pressMenu();
+		getObjByTxt("Delete").clickAndWaitForNewWindow();
+		getObjByTxt("OK").clickAndWaitForNewWindow();
+	}
+	/* now is the contact screen */
+	public Contact getContact(String name) throws RemoteException, UiObjectNotFoundException {
+		UiObject uiObj = getObjByClsIdx("android.widget.FrameLayout", 2);
+		String phone = uiObj.getChild(new UiSelector().resourceId("com.android.contacts:id/data")).getText();
+		phone = phone.replaceAll("-", "").replace(" ", "");
+		uiObj = getObjByClsIdx("android.widget.FrameLayout", 4);
+		String email = uiObj.getChild(new UiSelector().resourceId("com.android.contacts:id/data")).getText();
+		uiObj = getObjByClsIdx("android.widget.FrameLayout", 6);
+		String address = uiObj.getChild(new UiSelector().resourceId("com.android.contacts:id/data")).getText();
+		return new Contact(name, phone, email, address);
 	}
 	/**
-	 * send message with a telphone number
+	 * send message
 	 * @param num
 	 * @param mes
 	 * @throws UiObjectNotFoundException
 	 * @throws RemoteException
 	 */
+	/* work in messaging list screen */
 	public void sendSmsByTelnum(String num, String mes) throws UiObjectNotFoundException, RemoteException {
-		openApp("Messaging");
 		getObjByDesc("New message").clickAndWaitForNewWindow();
-		getMultiEditByText("To").setText(num);
-		getEditByText("Type message").setText(mes);
+		getMultiEditByTxt("To").setText(num);
+		getEditByTxt("Type message").setText(mes);
 		pressBack();
 		getObjByDesc("Send").clickAndWaitForNewWindow();
 	}
-	/**
-	 * send message with a contact name
-	 * @param name
-	 * @param mes
-	 * @throws UiObjectNotFoundException
-	 * @throws RemoteException
-	 */
+	/* work in contact list screen , will keep in contact sms screen */
 	public void sendSms(String name, String mes) throws UiObjectNotFoundException, RemoteException {
 		openContact(name);
 		getObjByDesc("Text mobile").clickAndWaitForNewWindow();
-		getEditByText("Type message").setText(mes);
+		getEditByTxt("Type message").setText(mes);
 		pressBack();
 		getObjByDesc("Send").clickAndWaitForNewWindow();
 	}
-	/**
-	 * delete a contact's all messages
-	 * @param name
-	 * @throws UiObjectNotFoundException
-	 * @throws RemoteException
-	 */
+	/* work in messaging list screen */
 	public void delSms(String name) throws UiObjectNotFoundException, RemoteException {
-		openApp("Messaging");
-		getObjByTextContains(name).clickAndWaitForNewWindow();
+		getObjByTxtContains(name).clickAndWaitForNewWindow();
 		pressMenu();
-		getObjByTextContains("Delete").clickAndWaitForNewWindow();
-		getObjByText("Delete").clickAndWaitForNewWindow();
+		getObjByTxtContains("Delete").clickAndWaitForNewWindow();
+		getObjByTxt("Delete").clickAndWaitForNewWindow();
 	}
 	/**
 	 * clear all notifications
@@ -286,9 +163,9 @@ public class TestUtils extends BasicUtils {
 	 * @throws RemoteException
 	 * @throws UiObjectNotFoundException
 	 */
+	/* work in browser main screen */
 	public void openUrl(String url) throws RemoteException, UiObjectNotFoundException {
-		openApp("Browser");
-		setEditText(getEdit(), url);
+		setEditTxt(getEdit(), url);
 		pressEnter();
 	}
 	/**
@@ -297,13 +174,14 @@ public class TestUtils extends BasicUtils {
 	 * @throws RemoteException
 	 * @throws UiObjectNotFoundException
 	 */
+	/* work in calculator main screen */
 	public void calculate(String cal) throws RemoteException, UiObjectNotFoundException {
-		openApp("Calculator");
-		clearEditText(getEdit());
+		clearEditTxt(getEdit());
 		cal = cal.replace("*", "×").replace("/", "÷").trim();
+		if (!cal.endsWith("="))
+			cal = cal + "=";
 		for (int i=0; i<cal.length(); i++)
-			getObjByText(String.valueOf(cal.charAt(i))).click();
-		getObjByText("=").click();
+			getObjByTxt(String.valueOf(cal.charAt(i))).click();
 	}
 	/**
 	 * open a dirpath
@@ -311,52 +189,28 @@ public class TestUtils extends BasicUtils {
 	 * @throws RemoteException
 	 * @throws UiObjectNotFoundException
 	 */
+	/* work in FileManager main screen , but will go to the path that you have gave*/
 	public void openDir(String dirPath) throws RemoteException, UiObjectNotFoundException {
-		openApp("File Manager");
 		String prefix = "/storage/emulated/o/";
 		if (dirPath.startsWith(prefix))
 			dirPath = dirPath.trim().replace(prefix, "");
 		String[] dir = dirPath.split("/");
 		for (String dirname:dir)
-			getChildByText("android.widget.TextView", dirname).clickAndWaitForNewWindow();
+			getChildByClsTxt("android.widget.TextView", dirname).clickAndWaitForNewWindow();
 	}
 	/**
 	 * turn on airplane mode
 	 * @throws UiObjectNotFoundException
 	 * @throws RemoteException
 	 */
+	/* work in Settings -> Wireless & networks screen */
 	public void openApMode() throws UiObjectNotFoundException, RemoteException {
-		UiObject uiObj = new UiObject(new UiSelector().resourceId("android:id/action_bar_title"));	
-		String title = "";
-		if (uiObj.exists())
-			title = uiObj.getText();
-		if (title.isEmpty() || (!title.equalsIgnoreCase("Settings") 
-				&& !title.equalsIgnoreCase("Wireless & networks"))) {
-			openApp("Settings");
-			getObjByTextContains("More").clickAndWaitForNewWindow();
-		}else if (!title.isEmpty() && title.equalsIgnoreCase("Settings"))
-			getObjByTextContains("More").clickAndWaitForNewWindow();
-		UiObject uiCbox = new UiObject(new UiSelector().className("android.widget.CheckBox").index(0));
+		UiObject uiCbox = getObjByClsIdx("android.widget.CheckBox", 0);
 		if (!uiCbox.isChecked())
 			uiCbox.click();
 	}
-	/**
-	 * turn off airplane mode
-	 * @throws RemoteException
-	 * @throws UiObjectNotFoundException
-	 */
 	public void closeApMode() throws RemoteException, UiObjectNotFoundException {
-		UiObject uiObj = new UiObject(new UiSelector().resourceId("android:id/action_bar_title"));	
-		String title = "";
-		if (uiObj.exists())
-			title = uiObj.getText();
-		if (title.isEmpty() || (!title.equalsIgnoreCase("Settings") 
-				&& !title.equalsIgnoreCase("Wireless & networks"))) {
-			openApp("Settings");
-			getObjByTextContains("More").clickAndWaitForNewWindow();
-		}else if (!title.isEmpty() && title.equalsIgnoreCase("Settings"))
-			getObjByTextContains("More").clickAndWaitForNewWindow();
-		UiObject uiCbox = new UiObject(new UiSelector().className("android.widget.CheckBox").index(0));
+		UiObject uiCbox = getObjByClsIdx("android.widget.CheckBox", 0);
 		if (uiCbox.isChecked())
 			uiCbox.click();
 	}
@@ -365,23 +219,13 @@ public class TestUtils extends BasicUtils {
 	 * @throws RemoteException
 	 * @throws UiObjectNotFoundException
 	 */
+	/* work in Settings */
 	public void openBluetooth() throws RemoteException, UiObjectNotFoundException {
-		UiObject uiObj = new UiObject(new UiSelector().resourceId("android:id/action_bar_title"));
-		if (!uiObj.exists() || !uiObj.getText().equalsIgnoreCase("Settings"))
-			openApp("Settings");
 		UiObject uiSwitch = getSwitch("Bluetooth");
 		if (uiSwitch.exists() && !uiSwitch.isChecked())
 			uiSwitch.click();
 	}
-	/**
-	 * turn off bluetooth
-	 * @throws RemoteException
-	 * @throws UiObjectNotFoundException
-	 */
 	public void closeBluetooth() throws RemoteException, UiObjectNotFoundException {
-		UiObject uiObj = new UiObject(new UiSelector().resourceId("android:id/action_bar_title"));
-		if (!uiObj.exists() || !uiObj.getText().equalsIgnoreCase("Settings"))
-			openApp("Settings");
 		UiObject uiSwitch = getSwitch("Bluetooth");
 		if (uiSwitch.exists() && uiSwitch.isChecked())
 			uiSwitch.click();
@@ -391,23 +235,13 @@ public class TestUtils extends BasicUtils {
 	 * @throws RemoteException
 	 * @throws UiObjectNotFoundException
 	 */
+	/* work in Settings */
 	public void openDataNet() throws RemoteException, UiObjectNotFoundException {
-		UiObject uiObj = new UiObject(new UiSelector().resourceId("android:id/action_bar_title"));
-		if (!uiObj.exists() || !uiObj.getText().equalsIgnoreCase("Settings"))
-			openApp("Settings");
 		UiObject uiSwitch = getSwitch("Mobile networks");
 		if (uiSwitch.exists() && !uiSwitch.isChecked())
 			uiSwitch.click();
 	}
-	/**
-	 * turn off mobile networks
-	 * @throws RemoteException
-	 * @throws UiObjectNotFoundException
-	 */
 	public void closeDataNet() throws RemoteException, UiObjectNotFoundException {
-		UiObject uiObj = new UiObject(new UiSelector().resourceId("android:id/action_bar_title"));
-		if (!uiObj.exists() || !uiObj.getText().equalsIgnoreCase("Settings"))
-			openApp("Settings");
 		UiObject uiSwitch = getSwitch("Mobile networks");
 		if (uiSwitch.exists() && uiSwitch.isChecked())
 			uiSwitch.click();
