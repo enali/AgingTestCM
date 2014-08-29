@@ -2,14 +2,16 @@ package com.enalix.testUtils;
 
 public class App {
 	private String appName;
+	private String pkgName;
 	private int	appPage;
 	private int appCol;
 	private int appRow;
 	private int appX;
 	private int appY;
 	
-	public App(String _name, int _page, int _col, int _row, int _x, int _y) {
-		this.appName = _name;
+	public App(String _app, String _pkg, int _page, int _col, int _row, int _x, int _y) {
+		this.appName = _app;
+		this.pkgName = _pkg;
 		this.appPage = _page;
 		this.appCol = _col;
 		this.appRow = _row;
@@ -18,6 +20,9 @@ public class App {
 	}
 	public String getName() {
 		return this.appName;
+	}
+	public String getPkg() {
+		return this.pkgName;
 	}
 	public int getPage() {
 		return this.appPage;
@@ -36,11 +41,11 @@ public class App {
 	}
 	@Override
 	public String toString() {
-		return this.appName + "---P" + this.appPage + "---C" +
-				this.appCol + "---R" + this.appRow + "---(" + this.appX + ", " + this.appY + ");";
+		return this.appName + "---K:" + this.pkgName + "---P:" + this.appPage + "---C:" +
+				this.appCol + "---R:" + this.appRow + "---(" + this.appX + ", " + this.appY + ");";
 	}
 	public static void main(String[] args) {
-		App app = new App("Settings", 1, 0, 1, 234, 458);
+		App app = new App("Settings", "com.android.Settings",  1, 0, 1, 234, 458);
 		System.out.println(app);
 	}
 }

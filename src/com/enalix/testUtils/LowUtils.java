@@ -1,14 +1,49 @@
 package com.enalix.testUtils;
 
-import java.util.ArrayList;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Random;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.os.RemoteException;
+import android.os.SystemClock;
+import android.util.Log;
 
 import com.android.uiautomator.core.*;
 import com.android.uiautomator.testrunner.*;
 
 public class LowUtils extends UiAutomatorTestCase {
+    public static long TIMEOUT = Constant.TIMEOUT;
+
+    public  String TAG = Constant.LOG_TAG;
+    /**
+     * Run in end of each test case, this case is for capturing screenshot when
+     * running parameter is "1" Example:
+     * {@code adb shell uiautomator xxxx.jar	-e screenshot 1}
+     */
+    @Override
+    protected void tearDown() throws Exception {
+        if (getParams().getString("screenshot") != null)
+            if (getParams().getString("screenshot").contentEquals("1")) {
+                takeScreenshot(Constant.SCREENSHOTS);
+            }
+        super.tearDown();
+    }
+    public LowUtils() {
+    	
+    }
+    public LowUtils(long timeout, String tag) {
+    	LowUtils.TIMEOUT = timeout;
+    	this.TAG = tag;
+    }
 	/**
 	 * unlock phone
 	 * @throws UiObjectNotFoundException
@@ -39,7 +74,8 @@ public class LowUtils extends UiAutomatorTestCase {
 	 * @throws RemoteException
 	 */
 	/* work in apps list screen 0 */
-	public void openApp(String appName) throws UiObjectNotFoundException, RemoteException {	
+	public void openApp(String appName) throws UiObjectNotFoundException, RemoteException {
+		openAppList();
 		while (!getObjByTxt(appName).exists())
 			swipe("left");
 		getObjByTxt(appName).clickAndWaitForNewWindow();
@@ -61,11 +97,11 @@ public class LowUtils extends UiAutomatorTestCase {
 				break;
 		if (i == route.length)
 			for (i=1; i<route.length; i++)
-				getScrObj().getChildByText(new UiSelector()
+				getScr().getChildByText(new UiSelector()
 					.className("android.widget.TextView"), route[i]).clickAndWaitForNewWindow();
 		else
 			for (i+=1; i<route.length; i++)
-				getScrObj().getChildByText(new UiSelector()
+				getScr().getChildByText(new UiSelector()
 					.className("android.widget.TextView"), route[i]).clickAndWaitForNewWindow();
 	}
 	/**
@@ -74,22 +110,28 @@ public class LowUtils extends UiAutomatorTestCase {
 	 * @throws RemoteException
 	 */
 	/* work in apps list screen 0 , will back to 0*/
-	public ArrayList<App> getAppList() throws UiObjectNotFoundException, RemoteException {
-		ArrayList<App> appList = new ArrayList<App>(100);
+	public HashMap<String, App> getAppList() throws UiObjectNotFoundException, RemoteException {
+		HashMap<String, App> appHash = new HashMap<String, App>(100);
 		int page = getObjById("com.android.launcher3:id/apps_customize_page_indicator").getChildCount();
 		for (int i=0; i<page; i++) {
-			int num = getScrObj().getChildCount(new UiSelector().className("android.widget.TextView"));
+			int num = getScr().getChildCount(new UiSelector().className("android.widget.TextView"));
 			for (int j=0; j<num; j++) {
 				UiObject uiObj = getObjByClsIdx("android.widget.TextView", j);
-				App app = new App(uiObj.getText(), i, 
-						j/4, j%4, uiObj.getBounds().centerX(), uiObj.getBounds().centerY());
-				appList.add(app);
+				String appName = uiObj.getText();
+				Point pt = getObjPoint(uiObj);
+				uiObj.clickAndWaitForNewWindow();
+				String pkgName = getUiDevice().getCurrentPackageName();
+				quitPkg(pkgName);
+				App app = new App(appName, pkgName, i, 
+						j/4, j%4, pt.x, pt.y);
+				appHash.put(appName, app);
 			}
 			swipe("left");
 		}
 		for (int i=0; i<page; i++)
 			swipe("right"); //keep the screen not change
-		return appList;
+		clearAllRecentApp();
+		return appHash;
 	}
 	/**
 	 * get the switch widget that at right of switchname's textview.
@@ -118,8 +160,17 @@ public class LowUtils extends UiAutomatorTestCase {
 	public UiObject getObjByClsTxtContains(String cls, String text) {
 		return new UiObject(new UiSelector().className(cls).textContains(text));
 	}
+	public UiObject getObjByClsTxtId(String cls, String text, String id) {
+		return new UiObject(new UiSelector().className(cls).text(text).resourceId(id));
+	}
 	public UiObject getObjById(String id) {
 		return new UiObject(new UiSelector().resourceId(id));
+	}
+	public UiObject getObjByClsId(String cls, String id) {
+		return new UiObject(new UiSelector().className(cls).resourceId(id));
+	}
+	public UiObject getObjByClsIns(String cls, int ins) {
+		return new UiObject(new UiSelector().className(cls).instance(ins));
 	}
 	public UiObject getObjByClsIdx(String className, int index) {
 		return new UiObject(new UiSelector().className(className).index(index));
@@ -130,14 +181,20 @@ public class LowUtils extends UiAutomatorTestCase {
 	public UiObject getObjByDescContains(String desc) {
 		return new UiObject(new UiSelector().descriptionContains(desc));
 	}
+	public UiObject getObjByClsDesc(String cls, String desc) {
+		return new UiObject(new UiSelector().className(cls).description(desc));
+	}
+	public UiObject getObjByClsDescContains(String cls, String desc) {
+		return new UiObject(new UiSelector().className(cls).descriptionContains(desc));
+	}
 	/**
 	 * get scrollable
 	 * @return
 	 */
-	public UiScrollable getScrObj() {
+	public UiScrollable getScr() {
 		return new UiScrollable(new UiSelector().scrollable(true));
 	}
-	public UiScrollable getScrObjByCls(String cls) {
+	public UiScrollable getScrByCls(String cls) {
 		return new UiScrollable(new UiSelector().className(cls).scrollable(true));
 	}
 	/**
@@ -156,6 +213,12 @@ public class LowUtils extends UiAutomatorTestCase {
 	public UiObject getEditByTxt(String text) {
 		return getObjByClsTxt("android.widget.EditText", text);
 	}
+    public UiObject getCboxIns(int ins) {
+    	return getObjByClsIns("android.widget.CheckBox", ins);
+    }
+    public UiObject getSwitchIns(int ins) {
+    	return getObjByClsIns("android.widget.Switch", ins);
+    }
 	/**
 	 * get/open/clear/clear all UiObject of the recent app
 	 * @param appName
@@ -166,8 +229,8 @@ public class LowUtils extends UiAutomatorTestCase {
 	public UiObject getRecentApp(String appName) throws UiObjectNotFoundException, RemoteException {
 		getUiDevice().pressRecentApps();
 		while (!getUiDevice().getCurrentPackageName().equalsIgnoreCase("com.android.systemui")); //wait for window update
-		if (getScrObj().exists())
-			getScrObj().scrollIntoView(getObjByTxt(appName));
+		if (getScr().exists())
+			getScr().scrollIntoView(getObjByTxt(appName));
 		return getObjByTxt(appName).getFromParent(new UiSelector().className("android.widget.FrameLayout"));
 	}
 	public void openRecentApp(String appName) throws RemoteException, UiObjectNotFoundException {
@@ -200,7 +263,7 @@ public class LowUtils extends UiAutomatorTestCase {
 	 * @throws UiObjectNotFoundException
 	 */
 	public UiObject getChildByClsTxt(String cls, String text) throws UiObjectNotFoundException {
-		UiScrollable uiScr = getScrObj();
+		UiScrollable uiScr = getScr();
 		if (uiScr.exists())
 			return uiScr.getChildByText(new UiSelector().className(cls), text);
 		else
@@ -261,13 +324,16 @@ public class LowUtils extends UiAutomatorTestCase {
 	 * @throws UiObjectNotFoundException 
 	 */
 	public void longPress(UiObject uiObj) throws UiObjectNotFoundException {
-		longPress(uiObj.getBounds().centerX(), uiObj.getBounds().centerY());
+		longPress(getObjPoint(uiObj));
 	}
 	public void longPress(int _x, int _y) {
 		//TODO:
 	}
-	public void longPress (float _xpercent, float _ypercent) {
-		longPress(toScreenX(_xpercent), toScreenY(_ypercent));
+	public void longPress (float _xRel, float _yRel) {
+		longPress(toScreenX(_xRel), toScreenY(_yRel));
+	}
+	public void longPress(Point pt) {
+		longPress(pt.x, pt.y);
 	}
 	/**
 	 * swipe 
@@ -288,6 +354,13 @@ public class LowUtils extends UiAutomatorTestCase {
 			return false;
 		}
 	}
+	public boolean swipeRel(float xs, float ys, float xe, float ye, int step) {
+		return getUiDevice().swipe(toScreenX(xs), toScreenY(ys), toScreenX(xe), toScreenY(ye), step);
+	}
+	public boolean swipeObj(UiObject uiObj1, UiObject uiObj2, int step) throws UiObjectNotFoundException {
+		Point[] seg = {getObjPoint(uiObj1), getObjPoint(uiObj2)};
+		return getUiDevice().swipe(seg, step);
+	}
 	/**
 	 * clear all notifications
 	 * @throws UiObjectNotFoundException
@@ -299,4 +372,170 @@ public class LowUtils extends UiAutomatorTestCase {
 			uiObj.clickAndWaitForNewWindow();
 		swipe("up");
 	}
+	public Point getObjPoint(UiObject uiObj) throws UiObjectNotFoundException {
+		Rect rect = uiObj.getBounds();
+		return new Point(rect.centerX(), rect.centerY());
+	}
+	public void clickObj(UiObject uiObj, boolean newWindow) throws UiObjectNotFoundException {
+		if (newWindow)
+			uiObj.clickAndWaitForNewWindow(TIMEOUT);
+		else
+			uiObj.click();
+	}
+	public void clickPoint(int _x, int _y) {
+		getUiDevice().click(_x, _y);
+	}
+	public void clickPoint(Point pt) {
+        getUiDevice().click(pt.x, pt.y);
+	}
+	/* sometimes the uiObj is not clickable */
+	public void clickPoint(UiObject uiObj) throws UiObjectNotFoundException {
+		clickPoint(getObjPoint(uiObj));
+	}
+	public void clickPoint(float _xRel, float _yRel) {
+		getUiDevice().click(toScreenX(_xRel), toScreenY(_yRel));
+	}
+    /**
+     * Take screenshot of the device, the picture will be generated in /sdcard/
+     *
+     * @param storePath The storage path in /sdcard/uiAutoTest/, if it's empty,
+     *            it will be in /sdcard/uiAutoTest/uitestName_2013xxxxxxx.png
+     * @return {@code true} if capture successfully.
+     */
+    public boolean takeScreenshot(String storePath) {
+        Log.v(TAG, "takeScreenshot.... ");
+        String baseDir = "/sdcard";
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+        String currentDateandTime = sdf.format(new Date());
+
+        String fileName = getName() + "_" + currentDateandTime.toString() + ".png";
+
+        String path = "";
+        if (storePath.isEmpty()) {
+            path = baseDir + File.separator + Constant.SCREENSHOTS + File.separator + fileName;
+        } else {
+            path = baseDir + File.separator + Constant.SCREENSHOTS + File.separator + storePath
+                    + File.separator + fileName;
+        }
+
+        File f = new File(path);
+        try {
+            if (!f.getParentFile().exists()) {
+                Runtime.getRuntime().exec("mkdir -p " + f.getParentFile().getAbsolutePath())
+                        .waitFor();
+            }
+            return getUiDevice().takeScreenshot(f, 0.5f, 30);
+        } catch (IOException e) {
+            Log.v(TAG, "filename1: " + fileName); //2???
+            Log.v(TAG, "filename1: " + fileName);
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            Log.v(TAG, "filename: " + fileName);
+            Log.v(TAG, "filename: " + fileName);
+            e.printStackTrace();
+        }
+        return false;
+    }
+    public void assertObj(UiObject uiObj) {
+    	assertTrue("The UiObject is not exists.", uiObj.exists());
+    }
+    public void assertPkg(String pkgName) {
+        assertEquals("Package name: \"" + pkgName + "\" is not current package", pkgName,
+                getUiDevice().getCurrentPackageName());
+    }
+    /*
+    public void dismissUnWantedWindow(final String targetPkg) {
+        UiWatcher dismissWatcher = new UiWatcher() {
+            @Override
+            public boolean checkForCondition() {
+                for (int i = 0; i < 2; i++) {
+                    if (!getUiDevice().getCurrentPackageName().equalsIgnoreCase(targetPkg)) {
+                    	pressBack();
+                    }
+                }
+                return getUiDevice().getCurrentPackageName().equalsIgnoreCase(targetPkg);
+            }
+        };
+        UiDevice.getInstance().registerWatcher("dismissWatcher", dismissWatcher);
+        UiDevice.getInstance().runWatchers();
+    }*/
+    public boolean quitPkg(String pkg) {
+    	while (getUiDevice().getCurrentPackageName().equalsIgnoreCase(pkg))
+    		pressBack();
+    	return getUiDevice().getCurrentPackageName().equalsIgnoreCase(pkg);
+    }
+    private StringBuilder getLog(StringBuilder stringBuilder) {
+        Process p = null;
+        BufferedReader reader = null;
+        String line = null;
+
+        try {
+            p = Runtime.getRuntime().exec("logcat -d");
+            reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            stringBuilder.setLength(0);
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        p.destroy();
+        try {
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return stringBuilder;
+    }
+    public boolean waitForLogMessage(String logMessage, int timeout) {
+        StringBuilder stringBuilder = new StringBuilder();
+        long endTime = SystemClock.uptimeMillis() + timeout;
+        while (SystemClock.uptimeMillis() < endTime) {
+            if (getLog(stringBuilder).lastIndexOf(logMessage) != -1) {
+                return true;
+            }
+            sleep(500);
+        }
+        return false;
+    }
+    /* img compare */
+    public boolean isImageSame(String sourceBitmapLocation, int x1, int y1, int x2, int y2) {
+        Bitmap sourceBitmap = BitmapFactory.decodeFile(sourceBitmapLocation + ".png");
+        Bitmap runtimeBitmap;
+
+        String runtimeBitmapPath = sourceBitmapLocation + "_runtime.png";
+        File runtimeFile = new File(runtimeBitmapPath);
+        getUiDevice().takeScreenshot(runtimeFile, 1f, 100);
+        runtimeBitmap = BitmapFactory.decodeFile(runtimeBitmapPath);
+
+        return Bitmap.createBitmap(sourceBitmap, x1, y1, x2 - x1, y2 - y1).sameAs(
+                Bitmap.createBitmap(runtimeBitmap, x1, y1, x2 - x1, y2 - y1));
+    }
+    public void launchApp(String pkg, String cls) {
+        String prog = "am start -n " + pkg + "/" + cls;
+        try {
+            Process process = Runtime.getRuntime().exec(prog);
+            process.waitFor();
+            getUiDevice().waitForWindowUpdate(null, 6000);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+    public void backHome() throws RemoteException, UiObjectNotFoundException {
+    	pressHome();
+    	clearAllRecentApp();
+    }
+    /**
+     * num times' random action
+     * @param rand
+     * @param num
+     */
+    public void randSwipe(Random rand, int num) {
+    	String[] dir = {"left", "right", "up", "down"};
+    	for (int i=0; i<num; i++) {
+    		swipe(dir[rand.nextInt(4)]);
+    	}
+    }
 }

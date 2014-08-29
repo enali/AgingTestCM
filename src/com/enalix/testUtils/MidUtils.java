@@ -1,8 +1,10 @@
 package com.enalix.testUtils;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 import android.os.RemoteException;
+import android.util.Log;
 
 import com.android.uiautomator.core.*;
 
@@ -31,9 +33,12 @@ public class MidUtils extends LowUtils {
 	}
 	/* work in wifi list screen */
 	public void connectWifi(String wifiName, String wifiPasswd) throws RemoteException, UiObjectNotFoundException {
+		Log.d(TAG, "Connect to Wifi with password...");
 		UiObject uiObjWifi = getObjByTxt(wifiName);
-		if (uiObjWifi.exists())
+		if (uiObjWifi.exists()) {
+			Log.d(TAG, "Ap finded");
 			uiObjWifi.clickAndWaitForNewWindow();
+		}
 		UiObject uiFor = getObjByTxt("Forget");
 		if (uiFor.exists()) {
 			uiFor.clickAndWaitForNewWindow();
@@ -42,8 +47,12 @@ public class MidUtils extends LowUtils {
 		getEdit().setText(wifiPasswd);
 		pressBack();
 		UiObject uiOk = getObjByTxt("Connect");
+		uiOk.waitForExists(10);
 		if (uiOk.exists())
 			uiOk.clickAndWaitForNewWindow();
+		String state = getObjByTxt(wifiName).getFromParent(new UiSelector().className("android.widget.TextView")).getText();
+		if (state.equalsIgnoreCase("Connected"))
+			Log.d(TAG, "wifi connected");
 	}
 	/**
 	 * call directly a Telphone number
@@ -66,6 +75,10 @@ public class MidUtils extends LowUtils {
 		openContact(name);
 		getObjByClsIdx("android.widget.FrameLayout", 2).clickAndWaitForNewWindow();
 	}
+	
+	public void endCall() {
+		//TODO:
+	}
 	/**
 	 * open/add/delete a contact
 	 * @param name
@@ -77,7 +90,7 @@ public class MidUtils extends LowUtils {
 	 */
 	/* now is the contacts list, will open contact window */
 	public void openContact(String name) throws UiObjectNotFoundException, RemoteException {
-		UiObject uiCont = getScrObj().getChildByText(new UiSelector().className("android.widget.TextView"), name);
+		UiObject uiCont = getScr().getChildByText(new UiSelector().className("android.widget.TextView"), name);
 		if (uiCont.exists())
 			uiCont.clickAndWaitForNewWindow();
 	}
@@ -105,6 +118,19 @@ public class MidUtils extends LowUtils {
 		getObjByTxt("Delete").clickAndWaitForNewWindow();
 		getObjByTxt("OK").clickAndWaitForNewWindow();
 	}
+	public void delContact(String[] nameList) throws RemoteException, UiObjectNotFoundException {
+		for (String name:nameList)
+			delContact(name);
+	}
+	public void delAllContact() {
+		//TODO:
+	}
+	public void exportContact() {
+		
+	}
+	public void importContact() {
+		
+	}
 	/* now is the contact screen */
 	public Contact getContact(String name) throws RemoteException, UiObjectNotFoundException {
 		UiObject uiObj = getObjByClsIdx("android.widget.FrameLayout", 2);
@@ -115,6 +141,9 @@ public class MidUtils extends LowUtils {
 		uiObj = getObjByClsIdx("android.widget.FrameLayout", 6);
 		String address = uiObj.getChild(new UiSelector().resourceId("com.android.contacts:id/data")).getText();
 		return new Contact(name, phone, email, address);
+	}
+	public void editContact(Contact cont) {
+		
 	}
 	/**
 	 * send message
@@ -146,17 +175,10 @@ public class MidUtils extends LowUtils {
 		getObjByTxtContains("Delete").clickAndWaitForNewWindow();
 		getObjByTxt("Delete").clickAndWaitForNewWindow();
 	}
-	/**
-	 * clear all notifications
-	 * @throws UiObjectNotFoundException
-	 */
-	public void clearNotifications() throws UiObjectNotFoundException {
-		getUiDevice().openNotification();
-		UiObject uiObj = getObjByDescContains("Clear");
-		if (uiObj.exists())
-			uiObj.clickAndWaitForNewWindow();
-		swipe("up");
+	public void delAllSms() {
+		//TODO:
 	}
+
 	/**
 	 * open web url with browser
 	 * @param url, such as "www.baidu.com"
@@ -197,6 +219,20 @@ public class MidUtils extends LowUtils {
 		String[] dir = dirPath.split("/");
 		for (String dirname:dir)
 			getChildByClsTxt("android.widget.TextView", dirname).clickAndWaitForNewWindow();
+	}
+	public void delFile(String fileName) {
+		//TODO:longPress
+		Log.d(TAG, "file" + fileName + "will delete ...");
+		if (!getObjByTxt(fileName).exists())
+			Log.d(TAG, "file" + fileName + "has deleted");
+	}
+	public void delFile(String[] fileArray) {
+		for (String file:fileArray) {
+			delFile(file);
+		}
+	}
+	public void renameFile(String oldName, String newName) {
+		
 	}
 	/**
 	 * turn on airplane mode
@@ -245,5 +281,192 @@ public class MidUtils extends LowUtils {
 		UiObject uiSwitch = getSwitch("Mobile networks");
 		if (uiSwitch.exists() && uiSwitch.isChecked())
 			uiSwitch.click();
+	}
+	/**
+	 * add email with address, passwd, and email type, such as POP, IMAP, EXCHANGE
+	 * @param address
+	 * @param passwd
+	 * @param type
+	 * @throws UiObjectNotFoundException
+	 */
+	/* work in Account setup screen */
+	public void addAccount(String account, String passwd, String type) throws UiObjectNotFoundException {
+		getObjById("com.android.email:id/account_email").setText(account);
+		getObjById("com.android.email:id/account_password").setText(passwd);
+		getObjById("com.android.email:id/manual_setup").clickAndWaitForNewWindow();
+		getObjByTxt(type).clickAndWaitForNewWindow();
+		pressBack();
+		getObjByClsTxt("android.widget.Button", "Next").clickAndWaitForNewWindow();
+		pressBack();
+		getObjByClsTxt("android.widget.Button", "Next").clickAndWaitForNewWindow();
+	}
+	public void delAccount(String account) {
+		
+	}
+	public void sendEmail(String toAddress, String content) {
+		
+	}
+	public void delEmail(String address) {
+		
+	}
+	/* work in clock main screen */
+	public void setAlarm(String time) throws UiObjectNotFoundException {
+		UiObject uiTab = getObjByClsIdx("android.app.ActionBar$Tab", 0);
+		if (!uiTab.isSelected())
+			uiTab.clickAndWaitForNewWindow();
+		getObjByDesc("Add alarm").clickAndWaitForNewWindow();
+		//TODO:
+	}
+	public void delAlarm(String time) {
+		
+	}
+	/* time format:	00:00:00 */
+	public void addCountdown(String time) throws UiObjectNotFoundException {
+		UiObject uiTab = getObjByClsIdx("android.app.ActionBar$Tab", 2);
+		if (!uiTab.isSelected())
+			uiTab.clickAndWaitForNewWindow();
+		UiObject uiTim = getObjByDesc("Add Timer");
+		if (uiTim.exists())
+			uiTim.clickAndWaitForNewWindow();
+		time = time.replaceAll(":", "");
+		getObjByDesc("Delete").longClick();
+		for (int i=0; i<time.length(); i++)
+			getObjByTxt(String.valueOf(time.charAt(i))).click();
+		getObjByTxt("Start").click();
+	}
+	public void addCityClock(String cityName) throws UiObjectNotFoundException {
+		UiObject uiTab = getObjByClsIdx("android.app.ActionBar$Tab", 1);
+		if (!uiTab.isSelected())
+			uiTab.clickAndWaitForNewWindow();
+		getObjByDesc("Cities").clickAndWaitForNewWindow();
+		getScr().getChildByText(new UiSelector().className("android.widget.TextView"), "cityName").click();
+		pressBack();
+	}
+	public void getCityTime(String cityName) {
+		
+	}
+	/* work in every screen, but will keep in Date & time */
+	public void set24HourFormat() throws RemoteException, UiObjectNotFoundException {
+		openSet("Settings->Date & time");
+		UiObject uiCbox = getObjByClsIns("android.widget.CheckBox", 2);
+		if (uiCbox.exists() && !uiCbox.isChecked())
+			uiCbox.click();
+	}
+	public void set12HourFormat() throws RemoteException, UiObjectNotFoundException {
+		openSet("Settings->Date & time");
+		UiObject uiCbox = getObjByClsIns("android.widget.CheckBox", 2);
+		if (uiCbox.exists() && uiCbox.isChecked())
+			uiCbox.click();
+	}
+	/* work in Camera screen */
+	public void takePhoto() throws UiObjectNotFoundException {
+		getObjByDesc("Shutter").click();
+	}
+	public void takeVideo(int tms) throws UiObjectNotFoundException {
+		getObjByDesc("Camera, video, or panorama selector").clickAndWaitForNewWindow();
+		getObjByDesc("Switch to video").clickAndWaitForNewWindow();
+		getObjByDesc("Shutter").click();
+		sleep(tms);
+		getObjByDesc("Shutter").click();
+	}
+	/* work in Apollo music play screen */
+	public void playMusicBySearch(String songName) throws UiObjectNotFoundException {
+		getObjByDesc("Search").click();
+		getEdit().setText(songName);
+		pressEnter();
+		pressEnter();
+		pressBack();
+		pressBack();
+	}
+	public void playMusic(String songName) {
+		//TODO:not support well for uiautomator. It's difficult to play some song.
+	}
+	public void controlMusic(String control) throws UiObjectNotFoundException {
+		if (control.equalsIgnoreCase("pause")) {
+			UiObject uiPause = getObjByClsDesc("android.widget.ImageButton", "Pause");
+			if (uiPause.exists())	uiPause.click();
+		}
+		else if (control.equalsIgnoreCase("next"))
+			getObjByClsDesc("android.widget.ImageButton", "Next").click();
+		else if (control.equalsIgnoreCase("previous"))
+			getObjByClsDesc("android.widget.ImageButton", "Previous").click();
+		else if (control.equalsIgnoreCase("play")) {
+			UiObject uiPlay = getObjByClsDesc("android.widget.ImageButton", "Play");
+			if (uiPlay.exists())	uiPlay.click();
+		}	
+	}
+	/* work in wechat main screen */
+	public void sendWMessage(String contactName, String message) throws UiObjectNotFoundException {
+		getObjByClsTxt("android.widget.TextView", "CHATS").clickAndWaitForNewWindow();
+		UiObject uiCont = getScrByCls("android.widget.ListView")
+				.getChildByText(new UiSelector().className("android.view.View").resourceId("com.tencent.mm:id/nickname_tv"), contactName);
+		if (uiCont.exists())
+			uiCont.clickAndWaitForNewWindow();
+		else {
+			getObjByClsTxt("android.widget.TextView", "CONTACTS").clickAndWaitForNewWindow();
+			uiCont = getScrByCls("android.widget.ListView")
+					.getChildByText(new UiSelector().className("android.view.View").resourceId("com.tencent.mm:id/myview"), contactName);
+			uiCont.clickAndWaitForNewWindow();
+			getObjByTxt("Message").clickAndWaitForNewWindow();
+		}
+		getEdit().setText(message);
+		pressEnter();
+	}
+	public void addWContact(String nickName) throws UiObjectNotFoundException {
+		getObjByDesc("My account and settings").click();
+		getObjByTxt("Add Contacts").clickAndWaitForNewWindow();
+		getEdit().setText(nickName);
+		pressEnter();
+		UiObject uiObj = getObjByTxt("Follow");
+		if (uiObj.exists())
+			uiObj.clickAndWaitForNewWindow();
+		else
+			getObjByTxt("Add").clickAndWaitForNewWindow();
+	}
+	/* play game 2048 */
+	public int play2048() {
+		String[] direction = {"right", "left", "up", "down"	};
+		Random rand = new Random();
+		int step = 0;
+		while (!getObjByTxt("Game Over!").exists()) {
+			swipe(direction[rand.nextInt(4)]);
+			step++;
+		}
+		return step;
+	}
+	public void setSleep(String time) throws RemoteException, UiObjectNotFoundException {
+		openSet("Settings->Display & lights->Sleep");
+		getObjByTxt(time).clickAndWaitForNewWindow();
+	}
+	public void installApp(String appName) throws UiObjectNotFoundException {
+		getObjByTxt(appName).clickAndWaitForNewWindow();
+		while (getObjByTxt("Next").exists())
+			getObjByTxt("Next").clickAndWaitForNewWindow();
+		getObjByTxt("Install").clickAndWaitForNewWindow();
+		getObjByTxt("Done").clickAndWaitForNewWindow();
+	}
+	public void uninstallApp(String appName) throws UiObjectNotFoundException {
+		openAppList();
+		while (!getObjByTxt(appName).exists())
+			swipe("left");
+		getObjByTxt(appName).longClick();
+	}
+	/* one app to set wallpaper */
+	public void tapet() throws UiObjectNotFoundException, RemoteException {
+		openAppList();
+		openApp("Tapet");
+		Random rand = new Random();
+		int num = rand.nextInt(10);
+		randSwipe(rand, num);
+		getObjByClsId("android.widget.ImageView", "com.sharpregion.tapet:id/applyEffect").clickAndWaitForNewWindow();
+		quitPkg("com.sharpregion.tapet");
+	}
+	
+	public void switchNetMode(String netMode) {
+		//TODO:
+	}
+	
+	public void getPhoneStatus() {
+		
 	}
 }

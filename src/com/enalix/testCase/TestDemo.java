@@ -2,9 +2,15 @@ package com.enalix.testCase;
 
 import java.util.HashMap;
 
+import android.app.Instrumentation;
+import android.graphics.Point;
 import android.os.RemoteException;
+import android.os.SystemClock;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
+import android.view.ViewConfiguration;
 
+import com.android.uiautomator.core.Configurator;
 import com.android.uiautomator.core.UiCollection;
 import com.android.uiautomator.core.UiObject;
 import com.android.uiautomator.core.UiObjectNotFoundException;
@@ -45,6 +51,13 @@ public class TestDemo extends MidUtils {
 		//clearAllRecentApp();
 		//openContact("lzp");
 		//callName("lzp");
-		calculate("1+2=");
+		//calculate("1+2=");
+		//openAppList();		set24HourFormat();
+		//openAppList();		openApp("Apollo");		playMusicBySearch("Rude");
+		//controlMusic("next");
+		//getObjByClsTxtId("android.view.View", "闯爷和他的背背山", "com.tencent.mm:id/nickname_tv").clickAndWaitForNewWindow();
+		//System.out.println(play2048());
+		//setSleep("10 minutes");
+		getObjByClsTxt("android.widget.TextView", "Tapet").click();
 	}
 }
