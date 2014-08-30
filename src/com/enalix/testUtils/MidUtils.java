@@ -1,8 +1,5 @@
 package com.enalix.testUtils;
 
-import java.util.ArrayList;
-import java.util.Random;
-
 import android.os.RemoteException;
 import android.util.Log;
 
@@ -108,9 +105,9 @@ public class MidUtils extends LowUtils {
 		getObjByTxt("Done").clickAndWaitForNewWindow();	
 		pressBack();
 	}
-	public void addContact(ArrayList<Contact> contactList) throws RemoteException, UiObjectNotFoundException {
-		for (Contact contact:contactList)
-			addContact(contact);
+	public void addContact(Contact[] cont) throws RemoteException, UiObjectNotFoundException {
+		for (int i=0; i<cont.length; i++)
+			addContact(cont[i]);
 	}
 	/* now is the contact screen */
 	public void delContact(String name) throws UiObjectNotFoundException, RemoteException {
@@ -232,6 +229,10 @@ public class MidUtils extends LowUtils {
 		}
 	}
 	public void renameFile(String oldName, String newName) {
+		
+	}
+	public String[] getFileList(String dirPath, String suffix) {
+		openDir(dirPath);
 		
 	}
 	/**
@@ -398,13 +399,13 @@ public class MidUtils extends LowUtils {
 	/* work in wechat main screen */
 	public void sendWMessage(String contactName, String message) throws UiObjectNotFoundException {
 		getObjByClsTxt("android.widget.TextView", "CHATS").clickAndWaitForNewWindow();
-		UiObject uiCont = getScrByCls("android.widget.ListView")
+		UiObject uiCont = getScr("android.widget.ListView")
 				.getChildByText(new UiSelector().className("android.view.View").resourceId("com.tencent.mm:id/nickname_tv"), contactName);
 		if (uiCont.exists())
 			uiCont.clickAndWaitForNewWindow();
 		else {
 			getObjByClsTxt("android.widget.TextView", "CONTACTS").clickAndWaitForNewWindow();
-			uiCont = getScrByCls("android.widget.ListView")
+			uiCont = getScr("android.widget.ListView")
 					.getChildByText(new UiSelector().className("android.view.View").resourceId("com.tencent.mm:id/myview"), contactName);
 			uiCont.clickAndWaitForNewWindow();
 			getObjByTxt("Message").clickAndWaitForNewWindow();
@@ -423,17 +424,7 @@ public class MidUtils extends LowUtils {
 		else
 			getObjByTxt("Add").clickAndWaitForNewWindow();
 	}
-	/* play game 2048 */
-	public int play2048() {
-		String[] direction = {"right", "left", "up", "down"	};
-		Random rand = new Random();
-		int step = 0;
-		while (!getObjByTxt("Game Over!").exists()) {
-			swipe(direction[rand.nextInt(4)]);
-			step++;
-		}
-		return step;
-	}
+
 	public void setSleep(String time) throws RemoteException, UiObjectNotFoundException {
 		openSet("Settings->Display & lights->Sleep");
 		getObjByTxt(time).clickAndWaitForNewWindow();
@@ -451,16 +442,7 @@ public class MidUtils extends LowUtils {
 			swipe("left");
 		getObjByTxt(appName).longClick();
 	}
-	/* one app to set wallpaper */
-	public void tapet() throws UiObjectNotFoundException, RemoteException {
-		openAppList();
-		openApp("Tapet");
-		Random rand = new Random();
-		int num = rand.nextInt(10);
-		randSwipe(rand, num);
-		getObjByClsId("android.widget.ImageView", "com.sharpregion.tapet:id/applyEffect").clickAndWaitForNewWindow();
-		quitPkg("com.sharpregion.tapet");
-	}
+
 	
 	public void switchNetMode(String netMode) {
 		//TODO:

@@ -121,7 +121,7 @@ public class LowUtils extends UiAutomatorTestCase {
 				Point pt = getObjPoint(uiObj);
 				uiObj.clickAndWaitForNewWindow();
 				String pkgName = getUiDevice().getCurrentPackageName();
-				quitPkg(pkgName);
+				quitPkg();
 				App app = new App(appName, pkgName, i, 
 						j/4, j%4, pt.x, pt.y);
 				appHash.put(appName, app);
@@ -194,8 +194,20 @@ public class LowUtils extends UiAutomatorTestCase {
 	public UiScrollable getScr() {
 		return new UiScrollable(new UiSelector().scrollable(true));
 	}
-	public UiScrollable getScrByCls(String cls) {
+	public UiScrollable getScr(String cls) {
 		return new UiScrollable(new UiSelector().className(cls).scrollable(true));
+	}
+	public int getChildCount(UiSelector uiSel) {
+		return getScr().getChildCount(uiSel);
+	}
+	public int getChildCount(String scrCls, UiSelector uiSel) {
+		return getScr(scrCls).getChildCount(uiSel);
+	}
+	public UiObject getChild(UiSelector uiSel) throws UiObjectNotFoundException {
+		return getScr().getChild(uiSel);
+	}
+	public UiObject getChild(String scrCls, UiSelector uiSel) throws UiObjectNotFoundException {
+		return getScr(scrCls).getChild(uiSel);
 	}
 	/**
 	 * get edit
@@ -459,7 +471,8 @@ public class LowUtils extends UiAutomatorTestCase {
         UiDevice.getInstance().registerWatcher("dismissWatcher", dismissWatcher);
         UiDevice.getInstance().runWatchers();
     }*/
-    public boolean quitPkg(String pkg) {
+    public boolean quitPkg() {
+    	String pkg = getUiDevice().getCurrentPackageName();
     	while (getUiDevice().getCurrentPackageName().equalsIgnoreCase(pkg))
     		pressBack();
     	return getUiDevice().getCurrentPackageName().equalsIgnoreCase(pkg);
@@ -532,10 +545,21 @@ public class LowUtils extends UiAutomatorTestCase {
      * @param rand
      * @param num
      */
-    public void randSwipe(Random rand, int num) {
+    public void randSwipe(int num) {
+    	Random rand = new Random();
     	String[] dir = {"left", "right", "up", "down"};
     	for (int i=0; i<num; i++) {
     		swipe(dir[rand.nextInt(4)]);
     	}
+    }
+    /* get width, height, rotation info */
+    public int getWd() {
+    	return getUiDevice().getDisplayWidth();
+    }
+    public int getHg() {
+    	return getUiDevice().getDisplayHeight();
+    }
+    public int getRt() {
+    	return getUiDevice().getDisplayRotation();
     }
 }

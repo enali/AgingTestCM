@@ -1,25 +1,17 @@
 package com.enalix.testCase;
 
-import java.util.HashMap;
-
-import android.app.Instrumentation;
-import android.graphics.Point;
 import android.os.RemoteException;
-import android.os.SystemClock;
-import android.view.KeyEvent;
-import android.view.MotionEvent;
-import android.view.ViewConfiguration;
 
-import com.android.uiautomator.core.Configurator;
-import com.android.uiautomator.core.UiCollection;
-import com.android.uiautomator.core.UiObject;
-import com.android.uiautomator.core.UiObjectNotFoundException;
-import com.android.uiautomator.core.UiScrollable;
-import com.android.uiautomator.core.UiSelector;
+import com.android.uiautomator.core.*;
 import com.enalix.testUtils.*;
 
-public class TestDemo extends MidUtils {
+public class TestDemo extends HighUtils{
 	public void testDemo() throws RemoteException, UiObjectNotFoundException {
+		/*framework
+		Customer one = new Customer();
+		behaveCustomer(one);
+		...
+		 */
 		//turnWifiOn();
 		//callTelnum("14592839");
 		//clearRecentApp("Messaging");
@@ -58,6 +50,11 @@ public class TestDemo extends MidUtils {
 		//getObjByClsTxtId("android.view.View", "闯爷和他的背背山", "com.tencent.mm:id/nickname_tv").clickAndWaitForNewWindow();
 		//System.out.println(play2048());
 		//setSleep("10 minutes");
-		getObjByClsTxt("android.widget.TextView", "Tapet").click();
+		//tapet();
+		//play2048();
+		//calculator(5);
+		//initContact(10);
+		//int num = getScr().getChildCount(new UiSelector().className("android.widget.TextView").resourceId("com.android.contacts:id/cliv_name_textview"));
+		//System.out.println(num);
 	}
 }
