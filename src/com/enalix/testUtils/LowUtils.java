@@ -21,9 +21,9 @@ import com.android.uiautomator.core.*;
 import com.android.uiautomator.testrunner.*;
 
 public class LowUtils extends UiAutomatorTestCase {
-    public static long TIMEOUT = Constant.TIMEOUT;
+    public static long TIMEOUT = TestHelper.TIMEOUT;
 
-    public  String TAG = Constant.LOG_TAG;
+    public  String TAG = TestHelper.LOG_TAG;
     /**
      * Run in end of each test case, this case is for capturing screenshot when
      * running parameter is "1" Example:
@@ -33,7 +33,7 @@ public class LowUtils extends UiAutomatorTestCase {
     protected void tearDown() throws Exception {
         if (getParams().getString("screenshot") != null)
             if (getParams().getString("screenshot").contentEquals("1")) {
-                takeScreenshot(Constant.SCREENSHOTS);
+                takeScreenshot(TestHelper.SCREENSHOTS);
             }
         super.tearDown();
     }
@@ -64,7 +64,7 @@ public class LowUtils extends UiAutomatorTestCase {
 	/* work in home screen */
 	public void openAppList() throws UiObjectNotFoundException {
 		UiObject uiObj = getObjByTxt("Apps");
-		if (uiObj.exists()) 
+		if (uiObj.exists())
 			uiObj.clickAndWaitForNewWindow();
 	}
 	/**
@@ -75,10 +75,12 @@ public class LowUtils extends UiAutomatorTestCase {
 	 */
 	/* work in apps list screen 0 */
 	public void openApp(String appName) throws UiObjectNotFoundException, RemoteException {
-		openAppList();
-		while (!getObjByTxt(appName).exists())
+		while (!getObjByTxt(appName).exists()) {
 			swipe("left");
+			getUiDevice().waitForWindowUpdate(null, 500);
+		}
 		getObjByTxt(appName).clickAndWaitForNewWindow();
+		getUiDevice().waitForWindowUpdate(null, 500);
 	}
 	/**
 	 * open the set component
@@ -105,35 +107,6 @@ public class LowUtils extends UiAutomatorTestCase {
 					.className("android.widget.TextView"), route[i]).clickAndWaitForNewWindow();
 	}
 	/**
-	 * print your apps list. format: name--page--col--row--point
-	 * @throws UiObjectNotFoundException
-	 * @throws RemoteException
-	 */
-	/* work in apps list screen 0 , will back to 0*/
-	public HashMap<String, App> getAppList() throws UiObjectNotFoundException, RemoteException {
-		HashMap<String, App> appHash = new HashMap<String, App>(100);
-		int page = getObjById("com.android.launcher3:id/apps_customize_page_indicator").getChildCount();
-		for (int i=0; i<page; i++) {
-			int num = getScr().getChildCount(new UiSelector().className("android.widget.TextView"));
-			for (int j=0; j<num; j++) {
-				UiObject uiObj = getObjByClsIdx("android.widget.TextView", j);
-				String appName = uiObj.getText();
-				Point pt = getObjPoint(uiObj);
-				uiObj.clickAndWaitForNewWindow();
-				String pkgName = getUiDevice().getCurrentPackageName();
-				quitPkg();
-				App app = new App(appName, pkgName, i, 
-						j/4, j%4, pt.x, pt.y);
-				appHash.put(appName, app);
-			}
-			swipe("left");
-		}
-		for (int i=0; i<page; i++)
-			swipe("right"); //keep the screen not change
-		clearAllRecentApp();
-		return appHash;
-	}
-	/**
 	 * get the switch widget that at right of switchname's textview.
 	 * @param SwitchName
 	 * @return android.widget.Switch
@@ -148,11 +121,23 @@ public class LowUtils extends UiAutomatorTestCase {
 	 * @param text
 	 * @return
 	 */
+	public UiCollection getColByCls(String cls) {
+		return new UiCollection(new UiSelector().className(cls));
+	}
 	public UiObject getObjByTxt(String text) {
 		return new UiObject(new UiSelector().text(text));
 	}
 	public UiObject getObjByTxtContains(String text) {
 		return new UiObject(new UiSelector().textContains(text));
+	}
+	public UiObject getObjByTxtMatches(String regex) {
+		return new UiObject(new UiSelector().textMatches(regex));
+	}
+	public UiObject getObjByTxtMatchesIns(String regex, int ins) {
+		return new UiObject(new UiSelector().textMatches(regex).instance(ins));
+	}
+	public UiObject getObjByTxtId(String text, String id) {
+		return new UiObject(new UiSelector().text(text).resourceId(id));
 	}
 	public UiObject getObjByClsTxt(String cls, String text) {
 		return new UiObject(new UiSelector().className(cls).text(text));
@@ -165,6 +150,9 @@ public class LowUtils extends UiAutomatorTestCase {
 	}
 	public UiObject getObjById(String id) {
 		return new UiObject(new UiSelector().resourceId(id));
+	}
+	public UiObject getObjByIdIns(String id, int ins) {
+		return new UiObject(new UiSelector().resourceId(id).instance(ins));
 	}
 	public UiObject getObjByClsId(String cls, String id) {
 		return new UiObject(new UiSelector().className(cls).resourceId(id));
@@ -209,6 +197,9 @@ public class LowUtils extends UiAutomatorTestCase {
 	public UiObject getChild(String scrCls, UiSelector uiSel) throws UiObjectNotFoundException {
 		return getScr(scrCls).getChild(uiSel);
 	}
+	public UiObject getSib(String textParent, String clsChild) throws UiObjectNotFoundException {
+		return getObjByTxt(textParent).getFromParent(new UiSelector().className(clsChild));
+	}
 	/**
 	 * get edit
 	 * @return
@@ -224,6 +215,9 @@ public class LowUtils extends UiAutomatorTestCase {
 	}
 	public UiObject getEditByTxt(String text) {
 		return getObjByClsTxt("android.widget.EditText", text);
+	}
+	public UiObject getEditById(String id) {
+		return getObjByClsId("android.widget.EditText", id);
 	}
     public UiObject getCboxIns(int ins) {
     	return getObjByClsIns("android.widget.CheckBox", ins);
@@ -351,19 +345,36 @@ public class LowUtils extends UiAutomatorTestCase {
 	 * swipe 
 	 * @param direction
 	 */
-	public boolean swipe(String direction) {
-		UiDevice d = getUiDevice();
+	public void swipe(String direction) {
 		switch(direction.toLowerCase()) {
 		case "left":
-			return d.swipe(toScreenX(0.8f), toScreenY(0.5f), toScreenX(0.2f), toScreenY(0.5f), 30);
+			swipeRel(0.8f, 0.5f, 0.2f, 0.5f, 30);
+			break;
 		case "right":
-			return d.swipe(toScreenX(0.2f), toScreenY(0.5f), toScreenX(0.8f), toScreenY(0.5f), 30);	
+			swipeRel(0.2f, 0.5f, 0.8f, 0.5f, 30);
+			break;
 		case "up":
-			return d.swipe(toScreenX(0.5f), toScreenY(0.8f), toScreenX(0.5f), toScreenY(0.2f), 30);		
+			swipeRel(0.5f, 0.8f, 0.5f, 0.2f, 30);
+			break;
 		case "down":
-			return d.swipe(toScreenX(0.5f), toScreenY(0.2f), toScreenX(0.5f), toScreenY(0.8f), 30);	
-		default:
-			return false;
+			swipeRel(0.5f, 0.2f, 0.5f, 0.8f, 30);
+			break;	
+		}
+	}
+	public void swipeMargin(String drct) {
+		switch(drct.toLowerCase()) {
+		case "left":
+			swipeRel(.0f, 0.5f, 0.75f, 0.5f, 30);
+			break;
+		case "right":
+			swipeRel(1.0f, 0.5f, 0.25f, 0.5f, 30);
+			break;	
+		case "up":
+			swipeRel(0.5f, .0f, 0.5f, 0.75f, 30);
+			break;
+		case "down":
+			swipeRel(0.5f, 1.0f, 0.5f, 0.25f, 30);	
+			break;
 		}
 	}
 	public boolean swipeRel(float xs, float ys, float xe, float ye, int step) {
@@ -373,6 +384,18 @@ public class LowUtils extends UiAutomatorTestCase {
 		Point[] seg = {getObjPoint(uiObj1), getObjPoint(uiObj2)};
 		return getUiDevice().swipe(seg, step);
 	}
+    /**
+     * num times' random action
+     * @param rand
+     * @param num
+     */
+    public void randSwipe(int num) {
+    	Random rand = new Random();
+    	String[] dir = {"left", "right", "up", "down"};
+    	for (int i=0; i<num; i++) {
+    		swipe(dir[rand.nextInt(4)]);
+    	}
+    }
 	/**
 	 * clear all notifications
 	 * @throws UiObjectNotFoundException
@@ -424,9 +447,9 @@ public class LowUtils extends UiAutomatorTestCase {
 
         String path = "";
         if (storePath.isEmpty()) {
-            path = baseDir + File.separator + Constant.SCREENSHOTS + File.separator + fileName;
+            path = baseDir + File.separator + TestHelper.SCREENSHOTS + File.separator + fileName;
         } else {
-            path = baseDir + File.separator + Constant.SCREENSHOTS + File.separator + storePath
+            path = baseDir + File.separator + TestHelper.SCREENSHOTS + File.separator + storePath
                     + File.separator + fileName;
         }
 
@@ -540,18 +563,7 @@ public class LowUtils extends UiAutomatorTestCase {
     	pressHome();
     	clearAllRecentApp();
     }
-    /**
-     * num times' random action
-     * @param rand
-     * @param num
-     */
-    public void randSwipe(int num) {
-    	Random rand = new Random();
-    	String[] dir = {"left", "right", "up", "down"};
-    	for (int i=0; i<num; i++) {
-    		swipe(dir[rand.nextInt(4)]);
-    	}
-    }
+
     /* get width, height, rotation info */
     public int getWd() {
     	return getUiDevice().getDisplayWidth();

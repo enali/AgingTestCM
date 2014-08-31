@@ -56,5 +56,25 @@ public class TestDemo extends HighUtils{
 		//initContact(10);
 		//int num = getScr().getChildCount(new UiSelector().className("android.widget.TextView").resourceId("com.android.contacts:id/cliv_name_textview"));
 		//System.out.println(num);
+		//openApp("Mail Master");
+		//sleep(500);
+		//delAccountMM("enalix@163.com");
+		//unlock();
+		//openAppList();
+		//openApp("Mail Master");
+		//String content = "hello from agingtestcm@163.com";
+		//sendEmailMM("agingtestcm01@163.com", "uiautomail", content);
+		//getObjByTxt("Inbox").clickAndWaitForNewWindow();
+		//openApp("Mail Master");
+		//delAllAccountMM();
+		//System.out.println(getStatus("IMEI"));
+		//openApp("People"); delAllContact();
+		//UiCollection uiCol = getColByCls("android.widget.ListView");
+		String[] app = initApp(10);
+		Contact[] cont = initContact(50);
+		String[] mess = initMessage(30);
+		Behavior bh = TestHelper.getGamerBehavior();
+		runBehavior(bh, cont, app, mess);
+		delAllContact();
 	}
 }

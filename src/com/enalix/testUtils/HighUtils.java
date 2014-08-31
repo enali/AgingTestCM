@@ -5,10 +5,12 @@ import java.util.Random;
 import android.os.RemoteException;
 import android.util.Log;
 
+import com.android.uiautomator.core.UiObject;
 import com.android.uiautomator.core.UiObjectNotFoundException;
 
 public class HighUtils extends MidUtils{
 	public final String[] games = {"2048"};
+	
 	public void messaging() {
 		
 	}
@@ -32,17 +34,20 @@ public class HighUtils extends MidUtils{
 	public void appManager() {
 		
 	}
-	public void gamePlay() throws UiObjectNotFoundException, RemoteException {
+	public void gamePlay(int num) throws UiObjectNotFoundException, RemoteException {
 		Random rand = new Random();
 		String game = games[rand.nextInt(games.length)];
 		if (game.equalsIgnoreCase("2048")) {
-			int step = play2048();
-			Log.v(TAG, "play game 2048, using " + step + " steps");
-			getObjByTxt("Try Again").clickAndWaitForNewWindow();
+			unlock();
+			openAppList();
+			openApp("2048");
+			for (int i=0; i<num; i++) {
+				int step = play2048();
+				Log.v(TAG, "play game 2048, using " + step + " steps");
+				getObjByTxt("Try Again").clickAndWaitForNewWindow();
+			}
 			clearRecentApp("2048");
 		}
-		
-		
 	}
 	public void phone() {
 		
@@ -80,18 +85,63 @@ public class HighUtils extends MidUtils{
 	 * @throws RemoteException
 	 * @throws UiObjectNotFoundException
 	 */
-	public int initPeople(int num) throws RemoteException, UiObjectNotFoundException {
+	public Contact[] initContact(int num) throws RemoteException, UiObjectNotFoundException {
+		unlock();
+		openAppList();
 		openApp("People");
+		while (!getUiDevice().getCurrentPackageName().equalsIgnoreCase("com.android.contacts"));
 		Contact[] cont = TestHelper.generateContact(num);
 		addContact(cont);
 		clearRecentApp("People");
-		return 12;
+		return cont;
 	}
-	public int initApp(String appPath, String[] appArray) {
-		return 12;
+	public int delAllContact() throws UiObjectNotFoundException, RemoteException {
+		int contNumber = 0;
+		UiObject uiCont = getObjByClsId("android.widget.TextView", "com.android.contacts:id/cliv_name_textview");
+		while (uiCont.exists()) {
+			String contName = uiCont.getText();
+			delContact(contName);
+			Log.v(TAG, "delete contact: " + contName);
+			contNumber++;
+		}
+		return contNumber;
 	}
-	/* give a customer argument, it will behave what you have defined in customer */
-	public void behaveCustomer(Customer cust) {
+	public String[] initApp(int num) throws RemoteException, UiObjectNotFoundException {
+		unlock();
+		openAppList();
+		openApp("File Manager");
+		openDir(TestHelper.APP_PATH);
+		String[] appArray = new String[num];
+		if (num>=TestHelper.APP_LIST.length)
+			appArray = TestHelper.APP_LIST.clone();
+		else {
+			int[] select = TestHelper.generateNoReptNumber(num, TestHelper.APP_LIST.length);
+			for (int i=0; i<select.length; i++)
+				appArray[i] = TestHelper.APP_LIST[select[i]];
+		}
+		installApp(appArray);
+		clearRecentApp("File Manager");
+		return appArray;
+	}
+	public void People(int num) throws RemoteException, UiObjectNotFoundException {
+
+	}
+
+	public void runBehavior(Behavior bh, Contact[] cont, String[] app, String[] mess) throws RemoteException, UiObjectNotFoundException {
+		int GameNum = bh.getGameNum();
+		int SendSmsNum = bh.getSendSmsNum();
+		int SendEmailNum = bh.getSendEmailNum();
+		int RecvSmsNum = bh.getRecvSmsNum();
+		int RecvEmailNum = bh.getRecvEmailNum();
+		int InstAppNum = bh.getInstAppNum();
+		int UnInstAppNum = bh.getUnInstAppNum();
 		
+		for (int i=0; i<GameNum; i++)
+			gamePlay(5);
+		
+	}
+	public String[] initMessage(int num) {
+		return new String[0];
+		//TODO:
 	}
 }
