@@ -126,9 +126,27 @@ public class MidUtils extends LowUtils {
 		getObjByTxt("Delete").clickAndWaitForNewWindow();
 		getObjByTxt("OK").clickAndWaitForNewWindow();
 	}
+	public void delContact(Contact cont) throws RemoteException, UiObjectNotFoundException {
+		delContact(cont.getName());
+	}
 	public void delContact(String[] nameList) throws RemoteException, UiObjectNotFoundException {
-		for (String name:nameList)
-			delContact(name);
+		for (int i=0; i<nameList.length; i++)
+			delContact(nameList[i]);
+	}
+	public void delContact(Contact[] cont) throws RemoteException, UiObjectNotFoundException {
+		for (int i=0; i<cont.length; i++)
+			delContact(cont[i].getName());
+	}
+	public int delAllContact() throws UiObjectNotFoundException, RemoteException {
+		int contNumber = 0;
+		UiObject uiCont = getObjByClsId("android.widget.TextView", "com.android.contacts:id/cliv_name_textview");
+		while (uiCont.exists()) {
+			String contName = uiCont.getText();
+			delContact(contName);
+			Log.v(TAG, "delete contact: " + contName);
+			contNumber++;
+		}
+		return contNumber;
 	}
 
 	public void exportContact() {
@@ -165,6 +183,27 @@ public class MidUtils extends LowUtils {
 		getEditByTxt("Type message").setText(mes);
 		pressBack();
 		getObjByDesc("Send").clickAndWaitForNewWindow();
+	}
+	public void sendSmsByTelnum(String num, String[] mes) throws UiObjectNotFoundException {
+		getObjByDesc("New message").clickAndWaitForNewWindow();
+		getMultiEditByTxt("To").setText(num);
+		for (int i=0; i<mes.length; i++) {
+			getEditByTxt("Type message").setText(mes[i]);
+			pressBack();
+			getObjByDesc("Send").clickAndWaitForNewWindow();
+		}
+	}
+	public void sendSmsByTelnum(String num[], String[] mes) throws UiObjectNotFoundException {
+		getObjByDesc("New message").clickAndWaitForNewWindow();
+		for (int i=0; i<num.length; i++) {
+			getMultiEditByTxt("To").setText(num[i]);
+			pressEnter();
+		}
+		for (int i=0; i<mes.length; i++) {
+			getEditByTxt("Type message").setText(mes[i]);
+			pressBack();
+			getObjByDesc("Send").clickAndWaitForNewWindow();
+		}
 	}
 	/* work in contact list screen , will keep in contact sms screen */
 	public void sendSms(String name, String mes) throws UiObjectNotFoundException, RemoteException {
@@ -203,7 +242,9 @@ public class MidUtils extends LowUtils {
 	/* work in browser main screen */
 	public void openUrl(String url) throws RemoteException, UiObjectNotFoundException {
 		setEditTxt(getEdit(), url);
-		pressEnter();
+		UiObject uiProc = getObjById("com.android.browser:id/progress");
+		if (uiProc.exists())
+			uiProc.waitUntilGone(60000);
 	}
 	public void openUrl(String[] urlArray) throws RemoteException, UiObjectNotFoundException {
 		for (int i=0; i<urlArray.length; i++)
@@ -235,6 +276,63 @@ public class MidUtils extends LowUtils {
 		String[] dir = getPathArray(dirPath);
 		for (int i=1; i<dir.length; i++)
 			getChildByClsTxt("android.widget.TextView", dir[i]).clickAndWaitForNewWindow();
+	}
+	public void creatDir(String dirPath) throws UiObjectNotFoundException {
+		if (dirPath.startsWith("/sdcard/"))
+			dirPath = dirPath.replace("/sdcard/", "");
+		String[] dir = dirPath.split("/");
+		for (int i=0; i<dir.length; i++) {
+			//UiObject uiDir = getChildByClsTxt("android.widget.TextView", dir[i]);
+			UiSelector uiSel = new UiSelector().className("android.widget.TextView").text(dir[i]);
+			if (isObjExist(uiSel))
+				getChild("android.widget.ListView", uiSel).clickAndWaitForNewWindow();
+			else {
+				getObjByDesc("Actions").click();
+				getObjByTxt("New folder").clickAndWaitForNewWindow();
+				getEditByTxt("New folder").setText(dir[i]);
+				getObjByClsTxt("android.widget.Button", "OK").clickAndWaitForNewWindow();
+				getChildByClsTxt("android.widget.TextView", dir[i]).clickAndWaitForNewWindow();
+			}
+		}
+	}
+	public void delDir(String dirPath) throws UiObjectNotFoundException {
+		if (dirPath.startsWith("/sdcard/"))
+			dirPath = dirPath.replace("/sdcard/", "");
+		String dir = dirPath.split("/")[0];
+		while (!getCwd().equalsIgnoreCase("/sdcard"))
+			pressBack();
+		delFile(dir);
+	}
+	public void creatFile(String fileName) throws UiObjectNotFoundException {
+		if (!isObjExist(new UiSelector().text(fileName))) {
+			getObjByDesc("Actions").click();
+			getObjByTxt("New file").clickAndWaitForNewWindow();
+			getEditByTxt("New file").setText(fileName);
+			getObjByClsTxt("android.widget.Button", "OK").clickAndWaitForNewWindow();
+		}
+	}
+	public void creatFile(String fileName, String content) throws UiObjectNotFoundException {
+		creatFile(fileName);
+		editFile(fileName, content);
+	}
+	public void creatFile(String[] fileArray) throws UiObjectNotFoundException {
+		for (int i=0; i<fileArray.length; i++)
+			creatFile(fileArray[i]);
+	}
+	public void editFile(String fileName, String content) throws UiObjectNotFoundException {
+		UiSelector uiSel = new UiSelector()
+			.resourceId("com.cyanogenmod.filemanager:id/navigation_view_item_name")
+				.className("android.widget.TextView")
+					.text(fileName);
+		if (isObjExist("android.widget.ListView", uiSel)) {
+			getChild("android.widget.ListView", uiSel).clickAndWaitForNewWindow();
+			getEdit().setText(content);
+			UiObject uiSave = getObjByClsDesc("android.widget.ImageButton", "Save");
+			uiSave.waitForExists(30000);
+			uiSave.clickAndWaitForNewWindow();
+			pressBack();
+			pressBack();
+		}
 	}
 	/* work in dirpath, you have openDir(dirPath) */
 	public void selectFile(String fileName) throws UiObjectNotFoundException {
@@ -402,8 +500,8 @@ public class MidUtils extends LowUtils {
 			getEditById("com.netease.mobimail:id/editor_password").setText(passwd);
 			pressBack();
 			getObjByTxt("Sign In").clickAndWaitForNewWindow();
+			getObjByTxt("Inbox").waitForExists(3000);
 			Log.v(TAG, "add mail master account:" + account);
-		default:
 			break;
 		}
 	}
@@ -430,8 +528,9 @@ public class MidUtils extends LowUtils {
 		for (int i=0; i<account.length; i++)
 			delAccountMM(account[i]);
 	}
-	public void delAllAccountMM() throws UiObjectNotFoundException {
+	public int delAllAccountMM() throws UiObjectNotFoundException {
 		pressMenu();
+		int accNum = 0;
 		getObjByTxt("Settings").clickAndWaitForNewWindow();
 		String regex = "\\w+@\\w+\\.\\w+";
 		UiObject uiAcc = getObjByTxtMatches(regex);
@@ -441,8 +540,13 @@ public class MidUtils extends LowUtils {
 			getObjByTxt("Delete Account").clickAndWaitForNewWindow();
 			getObjByTxt("Delete Account").clickAndWaitForNewWindow();
 			Log.v(TAG, "delete mail master account:" + account);
+			accNum++;
 			uiAcc = getObjByTxtMatches(regex);
 		}
+		return accNum;
+	}
+	public void selectAccountMM(String account) {
+		
 	}
 	public void sendEmailMM(String account, String subject, String content, String[] cc, String[] bcc) throws UiObjectNotFoundException {
 		UiObject uiTitle = getObjByClsId("android.widget.TextView", "android:id/action_bar_title");
@@ -486,7 +590,9 @@ public class MidUtils extends LowUtils {
 			}
 		}
 		sleep(500);
-		
+	}
+	public void sendEmailMM(String account, String subject, String content) throws UiObjectNotFoundException {
+		sendEmailMM(account, subject, content, new String[0], new String[0]);
 	}
 	// TODO:not work!
 	public void switchTabMM(String tabName) throws UiObjectNotFoundException {
@@ -505,9 +611,7 @@ public class MidUtils extends LowUtils {
 			getObjByClsTxtId("android.widget.TextView", tabName, "com.netease.mobimail:id/mail_folder_list_item_name").clickAndWaitForNewWindow();
 		}
 	}
-	public void sendEmailMM(String account, String subject, String content) throws UiObjectNotFoundException {
-		sendEmailMM(account, subject, content, new String[0], new String[0]);
-	}
+
 	public void delEmailMM(String account, String subject) throws UiObjectNotFoundException {
 		//TODO:can't do.
 	}
@@ -629,37 +733,65 @@ public class MidUtils extends LowUtils {
 		openSet("Settings->Display & lights->Sleep");
 		getObjByTxt(time).clickAndWaitForNewWindow();
 	}
-	public void installApp(String appName) throws UiObjectNotFoundException {
-		getObjByTxt(appName).clickAndWaitForNewWindow();
-		while (getObjByTxt("Next").exists())
-			getObjByTxt("Next").clickAndWaitForNewWindow();
-		getObjByTxt("Install").clickAndWaitForNewWindow();
-		getObjByTxt("Done").clickAndWaitForNewWindow();
-		Log.v(TAG, "install app: " + appName);
+	public void installApp(String app) throws UiObjectNotFoundException {
+		String appName = app;
+		if (!appName.endsWith(".apk"))
+			appName = appName + ".apk";
+		UiObject uiApp;
+		if (getScr("android.widget.ListView").exists())
+			uiApp = getScr("android.widget.ListView")
+				.getChildByText(new UiSelector().resourceId("com.cyanogenmod.filemanager:id/navigation_view_item_name"), appName);
+		else
+			uiApp = getObjByTxtId(appName, "com.cyanogenmod.filemanager:id/navigation_view_item_name");
+		if (uiApp.exists()) {
+			uiApp.clickAndWaitForNewWindow();
+			while (getObjByTxt("Next").exists())
+				getObjByTxt("Next").clickAndWaitForNewWindow();
+			getObjByTxt("Install").clickAndWaitForNewWindow();
+			getObjByTxt("Done").waitForExists(30000);
+			getObjByTxt("Done").clickAndWaitForNewWindow();
+			Log.v(TAG, "install app: " + appName);
+		}
 	}
 	public void installApp(String[] appList) throws UiObjectNotFoundException {
 		for (int i=0; i<appList.length; i++)
 			installApp(appList[i]);
 	}
-	public void uninstallApp(String appName) throws UiObjectNotFoundException {
-		openAppList();
-		while (!getObjByTxt(appName).exists())
-			swipe("left");
-		getObjByTxt(appName).longClick();
+	public void uninstallApp(String app) throws UiObjectNotFoundException {
+		UiObject uiApp;
+		String appName = app;
+		if (appName.endsWith(".apk"))
+			appName = appName.replace(".apk", "");
+		if (getScr("android.widget.ListView").exists())
+			uiApp = getScr("android.widget.ListView")
+				.getChildByText(new UiSelector().resourceId("com.android.settings:id/app_name"), appName);
+		else
+			uiApp = getObjByTxtId(appName, "com.android.settings:id/app_name");
+		if (uiApp.exists()) {
+			uiApp.clickAndWaitForNewWindow();
+			getObjByClsTxt("android.widget.Button", "Uninstall").clickAndWaitForNewWindow();
+			getObjByClsTxt("android.widget.Button", "OK").click();
+			getObjByClsTxt("android.widget.TextView", "Downloaded").waitForExists(30000);
+			Log.v(TAG, "uninstall app: " + appName);
+		}
+	}
+	public void uninstallApp(String[] appArray) throws UiObjectNotFoundException {
+		for (int i=0; i<appArray.length; i++) 
+			uninstallApp(appArray[i]);
 	}
 
 	
 	public void switchNetMode(String netMode) {
 		//TODO:
 	}
-	/* Settings, About Phone , Notice: the type equal excatly what you see at phone */
+	/* Settings-> About Phone-> Notice: the type equal excatly what you see at phone */
 	public String getPhoneStatus(String type) throws RemoteException, UiObjectNotFoundException {
 		openSet("Settings->About Phone");
 		UiObject uiType = getScr("android.widget.ListView")
 				.getChildByText(new UiSelector().resourceId("android:id/title"), type);
 		return uiType.getFromParent(new UiSelector().resourceId("android:id/summary")).getText();
 	}
-	/* Settings, About Phone, Status */
+	/* Settings-> About Phone-> Status */
 	public String getStatus(String type) throws RemoteException, UiObjectNotFoundException {
 		openSet("Settings->About Phone->Status");
 		UiObject uiType = getScr("android.widget.ListView")

@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Random;
 
 import android.graphics.Bitmap;
@@ -60,9 +59,11 @@ public class LowUtils extends UiAutomatorTestCase {
 	/**
 	 * enter the apps list
 	 * @throws UiObjectNotFoundException
+	 * @throws RemoteException 
 	 */
 	/* work in home screen */
-	public void openAppList() throws UiObjectNotFoundException {
+	public void openAppList() throws UiObjectNotFoundException, RemoteException {
+		unlock();
 		UiObject uiObj = getObjByTxt("Apps");
 		if (uiObj.exists())
 			uiObj.clickAndWaitForNewWindow();
@@ -75,12 +76,14 @@ public class LowUtils extends UiAutomatorTestCase {
 	 */
 	/* work in apps list screen 0 */
 	public void openApp(String appName) throws UiObjectNotFoundException, RemoteException {
+		openAppList();
+		String curPkg = getUiDevice().getCurrentPackageName();
 		while (!getObjByTxt(appName).exists()) {
 			swipe("left");
 			getUiDevice().waitForWindowUpdate(null, 500);
 		}
 		getObjByTxt(appName).clickAndWaitForNewWindow();
-		getUiDevice().waitForWindowUpdate(null, 500);
+		while (getUiDevice().getCurrentPackageName().equalsIgnoreCase(curPkg));
 	}
 	/**
 	 * open the set component
@@ -89,6 +92,7 @@ public class LowUtils extends UiAutomatorTestCase {
 	 * @throws UiObjectNotFoundException
 	 */
 	public void openSet(String setRoute) throws RemoteException, UiObjectNotFoundException {
+		unlock();
 		if (!getUiDevice().getCurrentPackageName().equalsIgnoreCase("com.android.settings"))
 			openApp("Settings");
 		String[] route = setRoute.split("->");
@@ -192,10 +196,22 @@ public class LowUtils extends UiAutomatorTestCase {
 		return getScr(scrCls).getChildCount(uiSel);
 	}
 	public UiObject getChild(UiSelector uiSel) throws UiObjectNotFoundException {
-		return getScr().getChild(uiSel);
+		if (getScr().exists())
+			return getScr().getChild(uiSel);
+		else
+			return new UiObject(uiSel);
 	}
 	public UiObject getChild(String scrCls, UiSelector uiSel) throws UiObjectNotFoundException {
-		return getScr(scrCls).getChild(uiSel);
+		if (getScr(scrCls).exists())
+			return getScr(scrCls).getChild(uiSel);
+		else
+			return new UiObject(uiSel);
+	}
+	public UiObject getChildByTxt(String text) throws UiObjectNotFoundException {
+		if (getScr().exists())
+			return getScr().getChild(new UiSelector().text(text));
+		else
+			return getObjByTxt(text);
 	}
 	public UiObject getSib(String textParent, String clsChild) throws UiObjectNotFoundException {
 		return getObjByTxt(textParent).getFromParent(new UiSelector().className(clsChild));
@@ -311,7 +327,7 @@ public class LowUtils extends UiAutomatorTestCase {
 			for (int i=0; i<text.length(); i++)
 				pressDelete();
 		uiEdit.setText(text);
-		pressBack();
+		pressEnter();
 	}
 	/**
 	 * get X/Y with the percent of width
@@ -395,6 +411,13 @@ public class LowUtils extends UiAutomatorTestCase {
     	for (int i=0; i<num; i++) {
     		swipe(dir[rand.nextInt(4)]);
     	}
+    }
+    public void randClick(int num) {
+    	Random rand = new Random();
+    	int dh = getUiDevice().getDisplayHeight();
+    	int dw = getUiDevice().getDisplayWidth();
+    	for (int i=0; i<num; i++)
+    		getUiDevice().click(rand.nextInt(dh), rand.nextInt(dw));
     }
 	/**
 	 * clear all notifications
@@ -573,5 +596,18 @@ public class LowUtils extends UiAutomatorTestCase {
     }
     public int getRt() {
     	return getUiDevice().getDisplayRotation();
+    }
+    
+    public boolean isObjExist(UiSelector uiSel) throws UiObjectNotFoundException {
+    	if (getScr().exists())
+    		return getScr().scrollIntoView(uiSel);
+    	else
+    		return new UiObject(uiSel).exists();
+    }
+    public boolean isObjExist(String scrCls, UiSelector uiSel) throws UiObjectNotFoundException {
+       	if (getScr(scrCls).exists())
+    		return getScr(scrCls).scrollIntoView(uiSel);
+    	else
+    		return new UiObject(uiSel).exists();
     }
 }

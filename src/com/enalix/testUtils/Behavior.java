@@ -1,19 +1,25 @@
 package com.enalix.testUtils;
 
 public class Behavior {	
-	private int GameNum = 0;
+
 	private int SendSmsNum = 0;
 	private int SendEmailNum = 0;
 	private int RecvSmsNum = 0;
 	private int RecvEmailNum = 0;
-	private int InstAppNum = 0;
-	private int UnInstAppNum = 0;
+	private int UrlOpenNum = 0;
+	private int UrlDownNum = 0;
 	
-	public int getGameNum() {
-		return GameNum;
+	private int ContactNum = 0;
+	private int AppNum = 0;
+	private int GameNum = 0;
+	private int FileNum = 0;
+	
+	
+	public int getFileNum() {
+		return FileNum;
 	}
-	public void setGameNum(int gameNum) {
-		GameNum = gameNum;
+	public void setFileNum(int fileNum) {
+		FileNum = fileNum;
 	}
 	public int getSendSmsNum() {
 		return SendSmsNum;
@@ -39,17 +45,35 @@ public class Behavior {
 	public void setRecvEmailNum(int recvEmailNum) {
 		RecvEmailNum = recvEmailNum;
 	}
-	public int getInstAppNum() {
-		return InstAppNum;
+	public int getUrlOpenNum() {
+		return UrlOpenNum;
 	}
-	public void setInstAppNum(int instAppNum) {
-		InstAppNum = instAppNum;
+	public void setUrlOpenNum(int urlOpenNum) {
+		UrlOpenNum = urlOpenNum;
 	}
-	public int getUnInstAppNum() {
-		return UnInstAppNum;
+	public int getUrlDownNum() {
+		return UrlDownNum;
 	}
-	public void setUnInstAppNum(int unInstAppNum) {
-		UnInstAppNum = unInstAppNum;
+	public void setUrlDownNum(int urlDownNum) {
+		UrlDownNum = urlDownNum;
+	}
+	public int getContactNum() {
+		return ContactNum;
+	}
+	public void setContactNum(int contactNum) {
+		ContactNum = contactNum;
+	}
+	public int getAppNum() {
+		return AppNum;
+	}
+	public void setAppNum(int appNum) {
+		AppNum = appNum;
+	}
+	public int getGameNum() {
+		return GameNum;
+	}
+	public void setGameNum(int gameNum) {
+		GameNum = gameNum;
 	}
 	
 }
