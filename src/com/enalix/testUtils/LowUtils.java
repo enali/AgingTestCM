@@ -36,13 +36,6 @@ public class LowUtils extends UiAutomatorTestCase {
             }
         super.tearDown();
     }
-    public LowUtils() {
-    	
-    }
-    public LowUtils(long timeout, String tag) {
-    	LowUtils.TIMEOUT = timeout;
-    	this.TAG = tag;
-    }
 	/**
 	 * unlock phone
 	 * @throws UiObjectNotFoundException

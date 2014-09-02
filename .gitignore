@@ -1,5 +1,3 @@
 /bin
-.*
-!.gitignore
 build.xml
 shadow.txt
