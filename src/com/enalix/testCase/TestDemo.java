@@ -9,11 +9,14 @@ import com.enalix.testUtils.*;
 
 public class TestDemo extends HighUtils{
 	public void testDemo() throws RemoteException, UiObjectNotFoundException, IOException {		
-
 		//###########init
-		String[] app = initApp(6);
-		Contact[] cont = initContact(6);
-		String[] email = initEmailMM(3);
+		int initAppNum = 6;
+		int initContNum = 6;
+		int initEmailNum = 3;
+		
+		String[] app = initApp(initAppNum);
+		Contact[] cont = initContact(initContNum);
+		String[] email = initEmailMM(initEmailNum);
 		
 		//###########run
 		Behavior bh = TestHelper.getGamerBehavior();

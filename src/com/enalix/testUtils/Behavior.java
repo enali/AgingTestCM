@@ -13,8 +13,15 @@ public class Behavior {
 	private int AppNum = 0;
 	private int GameNum = 0;
 	private int FileNum = 0;
+	private int CalculateNum = 0;
 	
 	
+	public int getCalculateNum() {
+		return CalculateNum;
+	}
+	public void setCalculateNum(int calculateNum) {
+		CalculateNum = calculateNum;
+	}
 	public int getFileNum() {
 		return FileNum;
 	}

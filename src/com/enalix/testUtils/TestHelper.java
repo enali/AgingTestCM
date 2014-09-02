@@ -174,6 +174,7 @@ public class TestHelper {
 		}
 		return numArray;
 	}
+	//num level path, not num path
 	public static String generatePath(int num) {
 		String path = "/sdcard";
 		for (int i=0; i<num; i++)

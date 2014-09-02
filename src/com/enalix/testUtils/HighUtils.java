@@ -1,6 +1,5 @@
 package com.enalix.testUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Random;
 
@@ -53,7 +52,7 @@ public class HighUtils extends MidUtils{
 		switch (action) {
 		case "send":
 			String[] mess = TestHelper.getMessage(2);
-			String content = mess[0] + mess[1];
+			String content = mess[0] + "\n" + mess[1] + "\n";
 			sendEmailMM(cont.getEmail(), TestHelper.EMAIL_SUBJECT, content);
 		case "recv":
 			break;
@@ -112,20 +111,30 @@ public class HighUtils extends MidUtils{
 	public void fileManager(String action, String dirPath, String[] fileList) throws UiObjectNotFoundException, RemoteException, IOException {
 		System.out.println("file manager " + action + " start");
 		openApp("File Manager");
-		creatDir(dirPath);
 		switch(action) {
 		case "creat":
+			System.out.println("creat dir start");
+			creatDir(dirPath);
+			System.out.println("creat dir end");
 			for (int i=0; i<fileList.length; i++) {
+				System.out.println("creat file " + fileList[i] + " start");
 				String[] content = TestHelper.getMessage(3);
-				creatFile(fileList[i], content.toString());
+				String str = "";
+				for (int j=0; j<content.length; j++)
+					str += content[j] + "\n";
+				creatFile(fileList[i], str);
+				System.out.println("creat file " + fileList[i] + " start");
 			}
+			break;
 		case "edit":
 			for (int i=0; i<fileList.length; i++) {
+				System.out.println("edit file " + fileList[i] + " start");
 				String[] content = TestHelper.getMessage(3);
 				String str="";
 				for (int j=0; j<content.length; j++)
-					str += content[j];
+					str += content[j] + "\n";
 				editFile(fileList[i], str);
+				System.out.println("edit file " + fileList[i] + " end");
 			}
 			break;
 		case "del":
@@ -167,12 +176,16 @@ public class HighUtils extends MidUtils{
 		System.out.println("App manager " + action + " " + app.length + " end");
 	}
 
-	public void phone() {
-		
+	public void phone(String action, Contact cont) {
+		switch (action) {
+		case "call":
+			break;
+		}
+		//TODO:
 	}
 
 	public void settings() {
-		
+		//TODO:
 	}
 	
 	/**
@@ -202,7 +215,6 @@ public class HighUtils extends MidUtils{
 	
 	
 	
-	
 	/* ---------------------------------------------------------------------For Calculator*/
 	public void calculator(int num) throws RemoteException, UiObjectNotFoundException {
 		System.out.println("Calculator start");
@@ -215,7 +227,6 @@ public class HighUtils extends MidUtils{
 		System.out.println("Calculator end");
 	}
 	/* ---------------------------------------------------------------------End For Calculator*/
-	
 	
 	
 	/* ---------------------------------------------------------------------For Tapet*/
@@ -231,7 +242,6 @@ public class HighUtils extends MidUtils{
 		System.out.println("tapet end");
 	}
 	/* ---------------------------------------------------------------------End For Tapet*/
-	
 	
 	
 	/* ---------------------------------------------------------------------For Game Play*/
@@ -390,57 +400,64 @@ public class HighUtils extends MidUtils{
 		int ContactNum = bh.getContactNum();
 		int AppNum = bh.getAppNum();
 		int FileNum = bh.getFileNum();
+		int CalculateNum = bh.getCalculateNum();
 		
 		for (int i=0; i<GameNum; i++)
 			gamePlay(5);
-		sleep(TestHelper.HOUR_DELAY);
-		/* ---------------------------------------------hour delay--------------------*/
+		sleepHourDelay();
 		
+		//###########send message
 		for (int i=0; i<SendSmsNum; i++)
 			messaging("send", cont[rand.nextInt(cont.length)]);
-		sleep(TestHelper.HOUR_DELAY);
-		/* ---------------------------------------------hour delay--------------------*/
+		sleepHourDelay();
 		
+		//###########open url
 		browser("open", UrlOpenNum);
-		sleep(TestHelper.HOUR_DELAY);
-		/* ---------------------------------------------hour delay--------------------*/
+		sleepHourDelay();
 		
+		//###########uninstall app
 		String[] uninstallApps = TestHelper.getSubStrArray(app, AppNum);
 		appManager("uninstall", uninstallApps);
-		sleep(TestHelper.HOUR_DELAY);
-		/* ---------------------------------------------hour delay--------------------*/
+		sleepHourDelay();
 		
+		//###########install app
 		appManager("install", uninstallApps);
-		sleep(TestHelper.HOUR_DELAY);
-		/* ---------------------------------------------hour delay--------------------*/
+		sleepHourDelay();
 		
+		//###########delete contact
 		int[] select = TestHelper.generateNoReptNumber(ContactNum, cont.length);
 		Contact[] delCont = new Contact[ContactNum];
 		for (int i=0; i<ContactNum; i++)
 			delCont[i] = cont[select[i]];
 		people("del", delCont);
-		sleep(TestHelper.HOUR_DELAY);
-		/* ---------------------------------------------hour delay--------------------*/
+		sleepHourDelay();
 		
+		//###########add contact what you delete forward
 		people("add", delCont);
-		sleep(TestHelper.HOUR_DELAY);
-		/* ---------------------------------------------hour delay--------------------*/
+		sleepHourDelay();
 		
+		//###########send email
 		for (int i=0; i<SendEmailNum; i++)
 			emailMM("send", cont[rand.nextInt(cont.length)]);
-		sleep(TestHelper.HOUR_DELAY);
-		/* ---------------------------------------------hour delay--------------------*/
+		sleepHourDelay();
 		
+		//###########create file
 		String dirPath = TestHelper.generatePath(4);
 		String[] fileList = TestHelper.generateFile(FileNum, ".txt");
 		fileManager("creat", dirPath, fileList);
-		sleep(TestHelper.HOUR_DELAY);
-		/* ---------------------------------------------hour delay--------------------*/
+		sleepHourDelay();
 		
+		//###########edit file what you create forward
 		fileManager("edit", dirPath, fileList);
-		/* ---------------------------------------------hour delay--------------------*/
+		sleepHourDelay();
 		
+		//###########delete file waht you create forward
 		fileManager("del", dirPath, fileList);
+		sleepHourDelay();
+		
+		//###########calculate expression
+		calculator(CalculateNum);
+		sleepHourDelay();
 	}
 	/* ---------------------------------------------------------------------End For Run Behavior*/
 	
@@ -451,7 +468,7 @@ public class HighUtils extends MidUtils{
 	public void runCustomer(Behavior[] customer, Contact[] cont, String[] app, String[] email) throws RemoteException, UiObjectNotFoundException, IOException {
 		for (int i=0; i<customer.length; i++) {
 			runBehavior(customer[i], cont, app, email);
-			sleep(TestHelper.DAY_DELAY);
+			sleepDayDelay();
 		}
 	}
 	/* ---------------------------------------------------------------------End for run customer*/

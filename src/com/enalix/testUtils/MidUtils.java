@@ -284,14 +284,14 @@ public class MidUtils extends LowUtils {
 		for (int i=0; i<dir.length; i++) {
 			//UiObject uiDir = getChildByClsTxt("android.widget.TextView", dir[i]);
 			UiSelector uiSel = new UiSelector().className("android.widget.TextView").text(dir[i]);
-			if (isObjExist(uiSel))
+			if (isObjExist("android.widget.ListView", uiSel))
 				getChild("android.widget.ListView", uiSel).clickAndWaitForNewWindow();
 			else {
 				getObjByDesc("Actions").click();
 				getObjByTxt("New folder").clickAndWaitForNewWindow();
 				getEditByTxt("New folder").setText(dir[i]);
 				getObjByClsTxt("android.widget.Button", "OK").clickAndWaitForNewWindow();
-				getChildByClsTxt("android.widget.TextView", dir[i]).clickAndWaitForNewWindow();
+				getChild("android.widget.ListView", uiSel).clickAndWaitForNewWindow();
 			}
 		}
 	}
@@ -304,7 +304,7 @@ public class MidUtils extends LowUtils {
 		delFile(dir);
 	}
 	public void creatFile(String fileName) throws UiObjectNotFoundException {
-		if (!isObjExist(new UiSelector().text(fileName))) {
+		if (!isObjExist("android.widget.ListView", new UiSelector().text(fileName))) {
 			getObjByDesc("Actions").click();
 			getObjByTxt("New file").clickAndWaitForNewWindow();
 			getEditByTxt("New file").setText(fileName);
@@ -329,9 +329,9 @@ public class MidUtils extends LowUtils {
 			getEdit().setText(content);
 			UiObject uiSave = getObjByClsDesc("android.widget.ImageButton", "Save");
 			uiSave.waitForExists(30000);
-			uiSave.clickAndWaitForNewWindow();
-			pressBack();
-			pressBack();
+			uiSave.click();
+			uiSave.waitUntilGone(30000);
+				pressBack();
 		}
 	}
 	/* work in dirpath, you have openDir(dirPath) */
@@ -576,7 +576,6 @@ public class MidUtils extends LowUtils {
 				pressBack();
 			}
 			getEditByTxt("Subject").setText(subject);
-			pressBack();
 			getEditById("com.netease.mobimail:id/mailcompose_content").setText(content);
 			pressBack();
 			if (getObjByTxt("Send").isEnabled())
@@ -797,5 +796,17 @@ public class MidUtils extends LowUtils {
 		UiObject uiType = getScr("android.widget.ListView")
 				.getChildByText(new UiSelector().resourceId("android:id/title"), type);
 		return uiType.getFromParent(new UiSelector().resourceId("android:id/summary")).getText();
+	}
+	
+	// sleep
+	public void sleepHourDelay() {
+		System.out.println("sleep hour delay start");
+		sleep(TestHelper.HOUR_DELAY);
+		System.out.println("sleep hour delay end");
+	}
+	public void sleepDayDelay() {
+		System.out.println("sleep day delay start");
+		sleep(TestHelper.DAY_DELAY);
+		System.out.println("sleep day delay end");
 	}
 }
