@@ -1,3 +1,21 @@
+# Usage
+
+* Windows
+  * download JDK7 for Windows
+  * download [ADT](developer.android.com)
+  * download [Git for windows](msysgit.github.io)
+  * clone this repository `git clone https://github.com/enali/AgingTestCM` int Git Bash
+  * import project in eclipse, File->Import->General(Existing Project ...), select project directory. you can get it by input `pwd` in Git Bash, please convert it to Windows style path. convert to windows' style path.
+  * change the `local.properties`, set your sdk.dir
+  * add external archives to build path, choose `sdkpath\platforms\android-xx\(android.jar|uiautomator.jar)`
+  * connect your phone, make sure your phone has install CyanogenMod
+  * run uitest.bat at cmd.exe. You need change the adb.exe's path. (always be `sdkpath\platform-tools\adb.exe`)
+* Linux
+  * download JDK7, ADT for Linux
+  * install git. `sudo apt-get install git git-core` for Ubuntu users. run git clone
+  * import project, set sdk.dir, add external archives, connect your phone, run uitest.sh.
+
+
 # Low Utils
 ## init
 * unlock():void
