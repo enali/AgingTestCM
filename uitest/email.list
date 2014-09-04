@@ -1,0 +1,3 @@
+# add email infomation.
+# The test will use it to init email app, send emali, recv email. 
+# account   passwd

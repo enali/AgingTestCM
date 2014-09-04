@@ -7,7 +7,7 @@
   * clone this repository `git clone https://github.com/enali/AgingTestCM` int Git Bash
   * import project in eclipse, File->Import->General(Existing Project ...), select project directory. you can get it by input `pwd` in Git Bash, please convert it to Windows style path. convert to windows' style path.
   * change the `local.properties`, set your sdk.dir
-  * add external archives to build path, choose `sdkpath\platforms\android-xx\(android.jar|uiautomator.jar)`
+  * right click project, add external archives to build path, choose `sdkpath\platforms\android-xx\(android.jar|uiautomator.jar)`
   * connect your phone, make sure your phone has install CyanogenMod
   * run uitest.bat at cmd.exe. You need change the adb.exe's path. (always be `sdkpath\platform-tools\adb.exe`)
 * Linux
